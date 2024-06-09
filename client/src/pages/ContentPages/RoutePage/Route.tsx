@@ -4,7 +4,7 @@ import ButtonComponment from "@/components/ButtonComponent/Button";
 import Anhf8 from "@/assets/Images/anhf8.png";
 export default function Route() {
   return (
-    <div className="container mt-5 w-full">
+    <div className="container mt-8 w-full">
       <div className="cactus-classical-serif-md text-[25px] mb-3 ">
         Lộ trình học
       </div>

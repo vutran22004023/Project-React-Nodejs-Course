@@ -2,7 +2,7 @@ import CarouselComponent from "@/components/CarouselComponent/carousel";
 import CardComponent from "@/components/CardComponent/Card";
 export default function index() {
   return (
-    <div className="container mt-5 w-full">
+    <div className="container mt-8 w-full">
       <CarouselComponent />
 
       <div className="mt-5 p-7">

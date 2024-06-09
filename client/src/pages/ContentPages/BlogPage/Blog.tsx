@@ -12,7 +12,7 @@ import Anh1 from "@/assets/Images/hinh-dep.jpg";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 export default function Blog() {
   return (
-    <div className="container mt-5 w-full">
+    <div className="container mt-8 w-full">
       <div className="cactus-classical-serif-md text-[25px] mb-1 ">
         Bài viết nổi bật
       </div>
