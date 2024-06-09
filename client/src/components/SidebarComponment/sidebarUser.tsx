@@ -18,7 +18,7 @@ export default function SidebarUser({ className, activePage }: SidebarProps) {
       <div className="space-y-4 py-4">
         <div className="px-3 py-2">
           <div className="space-y-1">
-            <Link to={'/'}>
+            <Link to={'/personal-page'}>
             <Button
               variant={activePage === "personalpage" ? "default" : "secondary"}
               className={cn(

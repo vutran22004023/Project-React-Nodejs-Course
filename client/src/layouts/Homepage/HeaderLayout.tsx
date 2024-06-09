@@ -86,10 +86,12 @@ export default function HeaderLayout() {
           <DropdownMenuLabel>Xin chào, Vũ Trần</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
+          <Link to={'/personal-page'}>
           <DropdownMenuItem className="cursor-pointer">
             <User className="mr-2 h-4 w-4" />
             <span className="hover:text-[#a1a1a1]">Trang cá nhân</span>
           </DropdownMenuItem>
+          </Link>
           <DropdownMenuItem className="cursor-pointer">
             <NotebookPen className="mr-2 h-4 w-4" />
             <span className="hover:text-[#a1a1a1]">Viết Blog</span>

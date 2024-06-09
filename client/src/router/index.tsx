@@ -10,6 +10,7 @@ import CoursesLoginPage from "@/pages/ContentPages/CoursesPage/CoursesLogin/Cour
 import UserLayout from "@/pages/ContentPages/UserPage/index"
 import InformationUser from "@/pages/ContentPages/UserPage/User/InformationUser"
 import PasswordAndSecurity from '@/pages/ContentPages/UserPage/User/passwordSecurity'
+import PersonalPage from '@/pages/ContentPages/UserPage/User/PersonalPage'
 const App = () => {
   return (
     <Router>
@@ -38,6 +39,7 @@ const App = () => {
         </Route>
         {/* Router User */}
         <Route path="/" element={<UserLayout isSidebarVisible={true} isHeaderVisible={true} />}>
+          <Route path="/personal-page" index element={<PersonalPage />} />
           <Route path="/information-user" index element={<InformationUser />} />
           <Route path="/password-and-security" index element={<PasswordAndSecurity />} />
         </Route>

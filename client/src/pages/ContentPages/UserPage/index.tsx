@@ -13,9 +13,9 @@ export default function Index({
   const location = useLocation();
   const path = location.pathname;
   const activePage =
-  path === "/"
+  path === "/personal-page"
     ? "personalpage"
-    : path.includes("/learning-paths")
+    : path.includes("/dasd")
     ? "blogging"
     : path === "/blog"
     ? "myarticle"

@@ -25,8 +25,8 @@ export default function Blog() {
       <div className="w-full flex">
         <div className="w-[60%]">
           {Array.from({ length: 5 }).map((_, index) => (
-            <Link to={'/blog/blog-detail'}>
-            <CardBlogComponment key={index}>
+            <Link to={'/blog/blog-detail'} key={index}>
+            <CardBlogComponment>
               <div className="flex  items-center mb-3">
                 <Avatar className="w-[40px] h-[40px] mr-2">
                   <AvatarImage
