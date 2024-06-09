@@ -10,6 +10,7 @@ import CardBlogComponment from "@/components/CardComponent/CardBlog";
 // } from "@/components/ui/pagination"
 import Anh1 from "@/assets/Images/hinh-dep.jpg";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {Link} from 'react-router-dom'
 export default function Blog() {
   return (
     <div className="container mt-8 w-full">
@@ -24,6 +25,7 @@ export default function Blog() {
       <div className="w-full flex">
         <div className="w-[60%]">
           {Array.from({ length: 5 }).map((_, index) => (
+            <Link to={'/blog/blog-detail'}>
             <CardBlogComponment key={index}>
               <div className="flex  items-center mb-3">
                 <Avatar className="w-[40px] h-[40px] mr-2">
@@ -58,6 +60,7 @@ export default function Blog() {
                 </div>
               </div>
             </CardBlogComponment>
+            </Link>
           ))}
           <div></div>
         </div>
