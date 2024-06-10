@@ -11,6 +11,7 @@ import UserLayout from "@/pages/ContentPages/UserPage/index"
 import InformationUser from "@/pages/ContentPages/UserPage/User/InformationUser"
 import PasswordAndSecurity from '@/pages/ContentPages/UserPage/User/passwordSecurity'
 import PersonalPage from '@/pages/ContentPages/UserPage/User/PersonalPage'
+import PostsBlog from '@/pages/ContentPages/UserPage/User/postsblog'
 const App = () => {
   return (
     <Router>
@@ -42,6 +43,7 @@ const App = () => {
           <Route path="/personal-page" index element={<PersonalPage />} />
           <Route path="/information-user" index element={<InformationUser />} />
           <Route path="/password-and-security" index element={<PasswordAndSecurity />} />
+          <Route path="/posts-blog" index element={<PostsBlog />} />
         </Route>
         {/* Router CoursesLogin */}
         <Route path="/" element={<CoursesLoginLayout isHeaderVisible={true} />}>

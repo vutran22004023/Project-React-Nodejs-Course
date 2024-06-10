@@ -92,10 +92,13 @@ export default function HeaderLayout() {
             <span className="hover:text-[#a1a1a1]">Trang cá nhân</span>
           </DropdownMenuItem>
           </Link>
+          
+          <Link to={'/posts-blog'}>
           <DropdownMenuItem className="cursor-pointer">
             <NotebookPen className="mr-2 h-4 w-4" />
             <span className="hover:text-[#a1a1a1]">Viết Blog</span>
           </DropdownMenuItem>
+          </Link>
           <DropdownMenuItem className="cursor-pointer">
             <Album className="mr-2 h-4 w-4" />
             <span className="hover:text-[#a1a1a1]">Bài viết của tôi</span>

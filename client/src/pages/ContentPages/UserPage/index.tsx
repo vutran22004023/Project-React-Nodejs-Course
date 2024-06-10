@@ -15,7 +15,7 @@ export default function Index({
   const activePage =
   path === "/personal-page"
     ? "personalpage"
-    : path.includes("/dasd")
+    : path === '/posts-blog'
     ? "blogging"
     : path === "/blog"
     ? "myarticle"

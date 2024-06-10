@@ -30,7 +30,7 @@ export default function SidebarUser({ className, activePage }: SidebarProps) {
               Trang cá nhân
             </Button>
             </Link>
-            <Link to={'/learning-paths'}>
+            <Link to={'/posts-blog'}>
             <Button
               variant={activePage === "blogging" ? "default" : "ghost"}
               className={cn(
