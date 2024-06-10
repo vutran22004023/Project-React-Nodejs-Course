@@ -19,6 +19,11 @@ const UserSchema = new mongoose.Schema(
       default: false,
       required: true,
     },
+    status: {
+      type: Boolean,
+      default: false,
+      required: true,
+    },
     avatar: {
       type: String,
     },

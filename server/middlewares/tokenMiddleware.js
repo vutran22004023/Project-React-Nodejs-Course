@@ -13,7 +13,7 @@ const generateAccessToken  = async (payload) => {
 
 const generateAccessTokenResetPassword  = async (payload) => {
     try {
-        const accessToken = jwt.sign(payload, process.env.RESET_TOKEN, { expiresIn: '1h' });
+        const accessToken = jwt.sign(payload, process.env.RESET_TOKEN, { expiresIn: '5m' });
         return accessToken;
     } catch (error) {
         throw error;

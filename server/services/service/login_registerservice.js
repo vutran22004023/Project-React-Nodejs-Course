@@ -1,6 +1,7 @@
 import {UserModel} from '../../models/index.js'
 import {TokenMiddleware} from '../../middlewares/index.js'
 import sendEmailResetPassword from '../../emails/EmailforgotPassword.js'
+import sendEmailAuthenticateuser from '../../emails/Emailauthenticateduser.js'
 import bcrypt from "bcrypt";
 const LoginIn = async(user) => {
     try {
@@ -74,6 +75,10 @@ const Register = async(user) => {
         password: hashedPassword,
       });
       if (createdUser) {
+        const resetToken = await TokenMiddleware.generateAccessTokenResetPassword({
+          id: createdUser._id,
+        })
+        await sendEmailResetPassword(createdUser, resetToken);
         return {
           status: 200,
           message: "Đăng ký thành công",
@@ -129,8 +134,31 @@ const resetPassword = async(token,newPassword) =>  {
     await user.save();
 
     return res.status(200).json({
-      status: 'OK',
+      status: 200,
       message: 'Đặt lại mật khẩu thành công',
+  });
+  }catch(err) {
+    return res.status(404).json({
+      message: err
+  })
+  }
+}
+
+const authenticateUser = async (token,newPassword) => {
+  try {
+    const decoded = TokenMiddleware.verifyResetToken(token);
+    const user = await UserModel.findById(decoded.id);
+    if (!user) {
+        return res.status(404).json({
+            status: 'ERR',
+            message: 'Người dùng không tồn tại',
+        });
+    }
+    user.status = true;
+    await user.save();
+    return res.status(200).json({
+      status: 200,
+      message: 'Cập nhập trạng thái thành công',
   });
   }catch(err) {
     return res.status(404).json({
@@ -143,5 +171,6 @@ export default {
     LoginIn,
     Register,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    authenticateUser
 }

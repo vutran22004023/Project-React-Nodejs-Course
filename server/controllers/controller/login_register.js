@@ -145,6 +145,20 @@ const resetPassword = async(req, res) => {
     }
 }
 
+const authenticateUser = async (req, res) => {
+try {
+    const { status, token } = req.body;
+    const response = await Login_Register_Service.authenticateUser(token, status)
+    return res.status(200).json(response)
+}catch(err) {
+    return res.status(500).json({
+        status: 'ERR',
+        message: 'Đã xảy ra lỗi, vui lòng thử lại',
+        error: err.message,
+    });
+}
+}
+
 
 
 export default {
@@ -152,5 +166,6 @@ export default {
     Register,
     logout,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    authenticateUser
 }
