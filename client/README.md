@@ -15,12 +15,17 @@ If you are developing a production application, we recommend updating the config
 
 ```js
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(),
+    
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  define: {
+    global: 'window',
+  }
 })
 ```
 
