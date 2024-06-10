@@ -47,7 +47,7 @@ export default function InformationUser() {
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px] bg-slate-50">
         <DialogHeader >
-          <DialogTitle>Chập nhập tên của bạn </DialogTitle>
+          <DialogTitle>Cập nhật tên của bạn </DialogTitle>
           <DialogDescription>
             Tên sẽ được hiển thị trên trang cá nhân, trong các bình luận và bài viết của bạn 
           </DialogDescription>

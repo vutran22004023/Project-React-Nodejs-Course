@@ -6,13 +6,20 @@ interface ButtonProps {
     className: string;
     style: React.CSSProperties;
   }
-export default function Button1({children, className, style} : ButtonProps) {
-  return (
-    <Button
-    className={`bg-[#000] text-[#fff] hover:text-[#000] mt-4 ${className}`} 
-    style={{ borderRadius: "20px", ...style }}
-    >
-      {children}
-    </Button>
+  const ButtonComponent = React.forwardRef<HTMLButtonElement, ButtonProps>(
+    ({ children, className, style }, ref) => {
+      return (
+        <Button
+          ref={ref}
+          className={`bg-[#000] text-[#fff] hover:bg-[#5a5a5a] mt-4 ${className}`} 
+          style={{ borderRadius: "20px", ...style }}
+        >
+          {children}
+        </Button>
+      );
+    }
   );
-}
+  
+  ButtonComponent.displayName = 'ButtonComponent'; // Đặt tên hiển thị cho component
+  
+  export default ButtonComponent;
