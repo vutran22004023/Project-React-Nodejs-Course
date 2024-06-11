@@ -1,39 +1,39 @@
-// import { Link } from "react-router-dom";
-// import {
-//   BellRing,
-//   LogOut,
-//   Settings,
-//   User,
-//   BookOpenText,
-//   Album,
-//   NotebookPen,
-// } from "lucide-react";
-// // import { CalendarDays } from "lucide-react"
-// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-// import {
-//   HoverCard,
-//   HoverCardContent,
-//   HoverCardTrigger,
-// } from "@/components/ui/hover-card";
+import { Link } from "react-router-dom";
+import {
+  BellRing,
+  LogOut,
+  Settings,
+  User,
+  BookOpenText,
+  Album,
+  NotebookPen,
+} from "lucide-react";
+// import { CalendarDays } from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 
-// import {
-//   DropdownMenu,
-//   DropdownMenuContent,
-//   DropdownMenuGroup,
-//   DropdownMenuItem,
-//   DropdownMenuLabel,
-//   DropdownMenuSeparator,
-//   DropdownMenuTrigger,
-// } from "@/components/ui/dropdown-menu";
-// import {
-//   Dialog,
-//   DialogContent,
-//   DialogDescription,
-//   DialogFooter,
-//   DialogHeader,
-//   DialogTitle,
-//   DialogTrigger,
-// } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import LoginComponent from '@/components/Login-RegisterComponent/Login'
 import RegisterComponent from '@/components/Login-RegisterComponent/Register'
 export default function HeaderLayout() {
@@ -52,12 +52,12 @@ export default function HeaderLayout() {
           }}
         />
       </div>
-      <div className="flex gap-2 items-center ">
+      <div className="flex gap-4 items-center mr-4">
       <LoginComponent/>
-      <RegisterComponent/>
+      {/* <RegisterComponent/> */}
 
-
-        {/* <Link to="/my-courses" className="text-black">
+{/* 
+        <Link to="/my-courses" className="text-black">
           Khóa học của tôi
         </Link>
         <HoverCard>

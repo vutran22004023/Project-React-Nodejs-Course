@@ -12,7 +12,7 @@ interface ButtonProps {
       return (
         <Button
           ref={ref}
-          className={`bg-[#000] text-[#fff] hover:bg-[#5a5a5a] mt-4 ${className}`} 
+          className={`bg-[#000] text-[#fff] hover:bg-[#5a5a5a] w-full mt-4 ${className}`} 
           style={{ borderRadius: "20px", ...style }}
           {...rest}
         >
