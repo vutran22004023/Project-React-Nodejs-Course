@@ -2,8 +2,8 @@ import express from 'express';
 import 'dotenv/config';
 import mongoose from 'mongoose';
 import cors from 'cors';
-import { Login_RegisterRouter, UserRouter } from './routers/index.js'
-import cookieParser from 'cookie-parser'
+import { Login_RegisterRouter, UserRouter } from './routers/index.js';
+import cookieParser from 'cookie-parser';
 
 const app = express();
 

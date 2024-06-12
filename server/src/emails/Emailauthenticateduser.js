@@ -1,11 +1,11 @@
 import nodemailer from 'nodemailer';
-import * as dotenv from "dotenv";
+import * as dotenv from 'dotenv';
 dotenv.config();
 
-const Emailauthenticateduser = async (user,resetToken) => {
-    // đương dẫn client tới chỗ input nhập lại mật khẩu 
-    const resetUrl = `http://localhost:3000/authenticated-user?token=${resetToken}`;
-    let htmlContent = `
+const Emailauthenticateduser = async (user, resetToken) => {
+  // đương dẫn client tới chỗ input nhập lại mật khẩu
+  const resetUrl = `http://localhost:3000/authenticated-user?token=${resetToken}`;
+  let htmlContent = `
         <h2>Xác thực tài khoản</h2>
         <p>Xin chào ${user.name}</p>
         <p>Bạn đã đăng ký tài khoản thành công. Vui lòng nhấp vào liên kết dưới đây để xác thực tài khoản của bạn:</p>
@@ -14,23 +14,23 @@ const Emailauthenticateduser = async (user,resetToken) => {
         <p>Trân trọng,</p>
         <p>Đội ngũ hỗ trợ của chúng tôi</p>
     `;
-    const transporter = nodemailer.createTransport({
-        host: "smtp.gmail.com",
-        port: 465,
-        secure: true,
-        auth: {
-            user: process.env.EMAIL_ADDRESS,
-            pass: process.env.MAIL_PASSWORD,
-        },
-    });
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: {
+      user: process.env.EMAIL_ADDRESS,
+      pass: process.env.MAIL_PASSWORD,
+    },
+  });
 
-    const info = await transporter.sendMail({
-        from: process.env.EMAIL_ADDRESS,
-        to: user.email,
-        subject: "Xác thực người dùng",
-        html: htmlContent,
-    });
-    console.log('Message sent: %s', info.messageId);
-}
+  const info = await transporter.sendMail({
+    from: process.env.EMAIL_ADDRESS,
+    to: user.email,
+    subject: 'Xác thực người dùng',
+    html: htmlContent,
+  });
+  console.log('Message sent: %s', info.messageId);
+};
 
 export default Emailauthenticateduser;
