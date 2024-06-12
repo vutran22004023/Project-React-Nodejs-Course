@@ -13,9 +13,9 @@ app.use(cookieParser());
 
 app.use('/api', Login_RegisterRouter);
 app.use('/api/user', UserRouter);
-        const port = process.env.PORT || 3002;
+      const port = process.env.PORT || 3002;
 // const url = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.qm0ui7p.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
-          const url = 'mongodb://localhost:27017';
+      const url = 'mongodb://localhost:27017';
 
 app.listen(port, async () => {
   await mongoose
