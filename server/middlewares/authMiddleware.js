@@ -61,8 +61,20 @@ const authUser = (req, res, next) => {
       });
 }
 
-const verifyResetToken = (token) => {
-    return jwt.verify(token,  process.env.RESET_TOKEN);
+const verifyResetToken = (req, res, next) => {
+    const token =  req.headers.token.split(' ')[1]
+    return jwt.verify(token,  process.env.RESET_TOKEN, function(err, user) {
+        if(err) {
+            return res.status(404).json({
+                status: 'ERR',
+                message: 'Token không đúng',
+            })
+        }
+        if(user) {
+            req.user = user;
+            next()
+        }
+    });
 };
 
 export default {

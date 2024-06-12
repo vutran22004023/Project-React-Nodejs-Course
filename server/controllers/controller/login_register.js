@@ -136,14 +136,15 @@ const forgotPassword = async(req, res) => {
 
 const resetPassword = async(req, res) => {
     try {
-        const { token,newPassword, confirmPassword } = req.body;
-        if (newPassword !== confirmPassword) {
+        const {password, confirmPassword } = req.body;
+        const id = req.user.id;
+        if (password !== confirmPassword) {
             return res.status(400).json({
                 status: 'ERR',
                 message: 'Mật khẩu xác nhận không khớp',
             });
         }
-        const response = await Login_Register_Service.resetPassword(token, newPassword)
+        const response = await Login_Register_Service.resetPassword(id, password)
         return res.status(200).json(response)
     }catch(err) {
         return res.status(500).json({

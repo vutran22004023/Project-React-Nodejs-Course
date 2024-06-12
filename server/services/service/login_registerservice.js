@@ -1,5 +1,5 @@
 import {UserModel} from '../../models/index.js'
-import {TokenMiddleware} from '../../middlewares/index.js'
+import {TokenMiddleware,AuthMiddleware} from '../../middlewares/index.js'
 import sendEmailResetPassword from '../../emails/EmailforgotPassword.js'
 import sendEmailAuthenticateuser from '../../emails/Emailauthenticateduser.js'
 import bcrypt from "bcrypt";
@@ -100,10 +100,10 @@ const forgotPassword = async (email) => {
     try {
       const user = await UserModel.findOne({ email });
       if (!user) {
-        return res.status(404).json({
+        return {
             status: 'ERR',
             message: 'Email không tồn tại',
-        });
+        };
     }
 
     const resetToken  =await TokenMiddleware.generateAccessTokenResetPassword({
@@ -111,6 +111,10 @@ const forgotPassword = async (email) => {
     })
 
     await sendEmailResetPassword(user, resetToken);
+    return {
+      status: 200,
+      message: "Đã gữi form tới email để cài đặt lại mật khẩu.",
+    };
     }catch(err) {
       return res.status(404).json({
         message: err
@@ -118,24 +122,23 @@ const forgotPassword = async (email) => {
     }
 }
 
-const resetPassword = async(token,newPassword) =>  {
+const resetPassword = async(id,newPassword) =>  {
   try {
-    const decoded = TokenMiddleware.verifyResetToken(token);
-    const user = await UserModel.findById(decoded.id);
+    const user = await UserModel.findById(id);
         if (!user) {
-            return res.status(404).json({
+            return{
                 status: 'ERR',
                 message: 'Người dùng không tồn tại',
-            });
+            };
         }
     const hashedPassword = bcrypt.hashSync(newPassword, 10); 
     user.password = hashedPassword;
     await user.save();
 
-    return res.status(200).json({
+    return {
       status: 200,
       message: 'Đặt lại mật khẩu thành công',
-  });
+    };
   }catch(err) {
     return res.status(404).json({
       message: err
@@ -148,17 +151,17 @@ const authenticateUser = async (token,newPassword) => {
     const decoded = TokenMiddleware.verifyResetToken(token);
     const user = await UserModel.findById(decoded.id);
     if (!user) {
-        return res.status(404).json({
+        return {
             status: 'ERR',
             message: 'Người dùng không tồn tại',
-        });
+        };
     }
     user.status = true;
     await user.save();
-    return res.status(200).json({
+    return {
       status: 200,
       message: 'Cập nhập trạng thái thành công',
-  });
+  };
   }catch(err) {
     return res.status(404).json({
       message: err

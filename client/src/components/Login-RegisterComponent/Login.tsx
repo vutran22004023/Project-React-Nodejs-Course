@@ -277,7 +277,7 @@ export default function Login() {
                     className="p-5 m-0 mb-4"
                     style={{ border: "1px solid #9c9c9c" }}
                     disabled={
-                      login.password.length && login.email.length ? false : true
+                      login?.password?.length && login?.email?.length ? false : true
                     }
                     onClick={handleOnClickLogin}
                   >

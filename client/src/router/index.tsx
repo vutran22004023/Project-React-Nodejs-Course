@@ -1,23 +1,27 @@
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import LayoutPageHome from "@/pages/ContentPages/index";
-import HomePage from "@/pages/ContentPages/HomePage/Home";
-import RoutePage from "@/pages/ContentPages/RoutePage/Route";
-import BlogPage from "@/pages/ContentPages/BlogPage/Blog";
-import BlogPageDetail from "@/pages/ContentPages/BlogPage/BlogDetail";
-import CoursesNotLogin from "@/pages/ContentPages/CoursesPage/CoursesPageNotLogin/CoursesNotLogin";
 import CoursesLoginLayout from "@/pages/ContentPages/CoursesPage/CoursesLogin/index";
-import CoursesLoginPage from "@/pages/ContentPages/CoursesPage/CoursesLogin/CourseLogin/CourseLogin";
 import UserLayout from "@/pages/ContentPages/UserPage/index"
-import InformationUser from "@/pages/ContentPages/UserPage/User/InformationUser"
-import PasswordAndSecurity from '@/pages/ContentPages/UserPage/User/passwordSecurity'
-import PersonalPage from '@/pages/ContentPages/UserPage/User/PersonalPage'
-import PostsBlog from '@/pages/ContentPages/UserPage/User/postsblog'
+
+
+const HomePage = lazy(() => import('@/pages/ContentPages/HomePage/Home'));
+const RoutePage = lazy(() => import('@/pages/ContentPages/RoutePage/Route'));
+const BlogPage = lazy(() => import('@/pages/ContentPages/BlogPage/Blog'));
+const BlogPageDetail = lazy(() => import('@/pages/ContentPages/BlogPage/BlogDetail'));
+const CoursesNotLogin = lazy(() => import('@/pages/ContentPages/CoursesPage/CoursesPageNotLogin/CoursesNotLogin'));
+const CoursesLoginPage = lazy(() => import('@/pages/ContentPages/CoursesPage/CoursesLogin/CourseLogin/CourseLogin'));
+const InformationUser = lazy(() => import('@/pages/ContentPages/UserPage/User/InformationUser'));
+const PasswordAndSecurity = lazy(() => import('@/pages/ContentPages/UserPage/User/passwordSecurity'));
+const PersonalPage = lazy(() => import('@/pages/ContentPages/UserPage/User/PersonalPage'));
+const PostsBlog = lazy(() => import('@/pages/ContentPages/UserPage/User/postsblog'));
+const FormResetPass = lazy(() => import('@/pages/ContentPages/FromForgotPass/FormResetPass'));
 const App = () => {
   return (
     <Router>
+    <Suspense fallback={<div>Loading...</div>}>
       <Routes>
-
-        {/* Router HomePage */}
+        {/* Router isSidebarVisible  isHeaderVisible*/}
         <Route
           path="/"
           element={
@@ -29,7 +33,7 @@ const App = () => {
           <Route path="blog" element={<BlogPage />} />
           <Route path="/courses-not-login" element={<CoursesNotLogin />} />
         </Route>
-        {/* Router Blog detail */}
+        {/* Router not isSidebarVisible and isHeaderVisible */}
         <Route
           path="/"
           element={
@@ -37,8 +41,11 @@ const App = () => {
           }
         >
           <Route path="blog/blog-detail" element={<BlogPageDetail />} />
+          <Route path="reset-password" element={<FormResetPass />} />
         </Route>
-        {/* Router User */}
+
+
+        {/* Router User isSidebarVisible  isHeaderVisible*/}
         <Route path="/" element={<UserLayout isSidebarVisible={true} isHeaderVisible={true} />}>
           <Route path="/personal-page" index element={<PersonalPage />} />
           <Route path="/information-user" index element={<InformationUser />} />
@@ -50,6 +57,7 @@ const App = () => {
           <Route path="/courses-login" index element={<CoursesLoginPage />} />
         </Route>
       </Routes>
+      </Suspense>
     </Router>
   );
 };
