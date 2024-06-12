@@ -6,16 +6,20 @@
   "type": "module",
   "scripts": {
     "start": "nodemon",
-    "test": "lint-staged",
+    "lint-staged": "lint-staged",
     "prettier": "prettier --write \"src/**/*.js\"",
-    "fix": "eslint --fix",
-    "prepare": "husky"
+    "fix": "eslint --fix"
   },
   "lint-staged": {
     "src/**/*.js": [
       "eslint --fix",
       "prettier --write"
     ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm lint-staged"
+    }
   },
   "author": "",
   "license": "ISC",

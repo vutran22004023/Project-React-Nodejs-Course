@@ -17,14 +17,14 @@ app.use('/api/user', UserRouter);
 // const url = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.qm0ui7p.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
       const url = 'mongodb://localhost:27017';
 
-app.listen(port, async () => {
-  await mongoose
-    .connect(url)
-    .then(() => {
-      console.log('Connect DB successfully');
-    })
-    .catch((err) => {
-      console.log(err);
+      app.listen(port, async () => {
+        await mongoose
+          .connect(url)
+          .then(() => {
+            console.log('Connect DB successfully');
+          })
+          .catch((err) => {
+            console.log(err);
     });
   console.log('listening on port http://localhost:' + port);
 });
