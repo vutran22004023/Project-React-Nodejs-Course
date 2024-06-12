@@ -1,5 +1,5 @@
 import {UserModel} from '../../models/index.js'
-
+import bcrypt from 'bcrypt';
 
 const getAllUsers = async (limit, page, sort, filter) => {
     try {
@@ -72,6 +72,10 @@ const updateUser = async (id, data,isAdmin) => {
         }
         if (!isAdmin) {
             delete data.isAdmin;
+        }
+
+        if (data.password) {
+            data.password = await bcrypt.hash(data.password, 10);
         }
         const updateUser = await UserModel.findByIdAndUpdate(id, data,{ new: true })
         return {

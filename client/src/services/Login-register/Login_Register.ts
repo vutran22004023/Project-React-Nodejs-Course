@@ -1,9 +1,9 @@
     import axios, { AxiosResponse } from 'axios';
 
-    import {User,Registers} from '@/types/index'
-    const Login = async( data:Record<string, string>): Promise<User> => {
+    import {User,Registers, LoginProps} from '@/types/index'
+    const Login = async( data:LoginProps): Promise<LoginProps> => {
         try{
-            const response: AxiosResponse<User> = await axios.post(`api/login-in`, data);
+            const response: AxiosResponse<LoginProps> = await axios.post(`api/login-in`, data);
             return response.data;
         }catch {
             throw new Error('Error login');

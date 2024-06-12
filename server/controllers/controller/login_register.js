@@ -1,4 +1,7 @@
 import {Login_Register_Service} from '../../services/index.js'
+import axios from 'axios'
+import * as dotenv from "dotenv";
+dotenv.config();
 const loginIn  = async(req, res) => {
     try {
         const {email, password} = req.body;
@@ -21,11 +24,6 @@ const loginIn  = async(req, res) => {
         }
 
         res.cookie('accessToken', response.access_Token, {
-            httpOnly: true,
-            secure: true, 
-            sameSite: 'Strict'
-        });
-        res.cookie('refreshToken', response.refresh_Token, {
             httpOnly: true,
             secure: true, 
             sameSite: 'Strict'
@@ -58,6 +56,17 @@ const Register = async(req, res) => {
                 status: 'ERR',
                 message: 'Nhập lại mật khẩu không khớp'
             })
+        }
+
+        const emailVerificationResponse = await axios.get(`${process.env.URL_VERIFICATION_API}`, {
+            params: { email, apikey: process.env.EMAIL_VERIFICATION_API_KEY }
+        });
+
+        if (emailVerificationResponse.data.result !== 'deliverable') {
+            return res.status(200).json({
+                status: 'ERR',
+                message: 'Email không tồn tại'
+            });
         }
 
         const response = await Login_Register_Service.Register(req.body)

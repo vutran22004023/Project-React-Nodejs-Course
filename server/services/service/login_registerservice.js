@@ -15,8 +15,7 @@ const LoginIn = async(user) => {
                 message: "Tài khoản không tồn tại",
             };
           }
-
-          const comparePasswords = bcrypt.compareSync(password,checkUser.password)
+          const comparePasswords = bcrypt.compareSync(password, checkUser.password);
           if(!comparePasswords) {
             return {
               status: "ERR",

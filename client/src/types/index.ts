@@ -16,3 +16,8 @@ export interface Registers {
     password: string;
     confirmPassword: string;
   }
+
+  export interface LoginProps {
+    email: string;
+    password:string;
+  }
