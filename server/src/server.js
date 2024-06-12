@@ -5,7 +5,7 @@ import cors from 'cors'
 import { Login_RegisterRouter, UserRouter } from './routers/index.js'
 import cookieParser from 'cookie-parser'
 
-const app = express()
+const app = express();
 
 app.use(cors());
 app.use(express.json())
