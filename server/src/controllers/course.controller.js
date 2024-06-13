@@ -3,18 +3,9 @@ import Course from '../models/course.model';
 class CourseController {
   async getCourses(req, res) {
     try {
-      if (!req.body.coursename || !req.body.email || !req.body.password)
-        return res.status(400).json({ message: 'Missing required fields' });
+      const result = await Course.find({});
 
-      const newCourse = {
-        coursename: req.body.coursename,
-        email: req.body.email,
-        password: createHash('sha256').update(req.body.password).digest('hex'),
-      };
-
-      await Course.create(newCourse);
-
-      return res.status(201).json({ message: 'Register successfully' });
+      return res.status(200).json({ data: result });
     } catch (error) {
       console.log(error.message);
       res.status(500).json({ message: error.message });
