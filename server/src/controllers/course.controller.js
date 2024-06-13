@@ -82,7 +82,6 @@ class CourseController {
       res.status(500).json({ message: error.message });
     }
   }
-  
 }
 
 export default new CourseController();
