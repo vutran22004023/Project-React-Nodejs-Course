@@ -110,7 +110,7 @@ class AuthController {
   async forgotPassword(req, res) {
     try {
       const { email } = req.body;
-      const mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+      const mailformat = "/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/";
       const isCheckEmail = mailformat.test(email);
       if (!email) {
         return res.status(200).json({
@@ -136,22 +136,23 @@ class AuthController {
 
   async resetPassword(req, res) {
     try {
-      const { token, newPassword, confirmPassword } = req.body;
-      if (newPassword !== confirmPassword) {
-        return res.status(400).json({
-          status: 'ERR',
-          message: 'Mật khẩu xác nhận không khớp',
-        });
+      const {password, confirmPassword } = req.body;
+      const id = req.user.id;
+      if (password !== confirmPassword) {
+          return res.status(400).json({
+              status: 'ERR',
+              message: 'Mật khẩu xác nhận không khớp',
+          });
       }
-      const response = await Login_Register_Service.resetPassword(token, newPassword);
-      return res.status(200).json(response);
-    } catch (err) {
+      const response = await Login_Register_Service.resetPassword(id, password)
+      return res.status(200).json(response)
+  }catch(err) {
       return res.status(500).json({
-        status: 'ERR',
-        message: 'Đã xảy ra lỗi, vui lòng thử lại',
-        error: err.message,
+          status: 'ERR',
+          message: 'Đã xảy ra lỗi, vui lòng thử lại',
+          error: err.message,
       });
-    }
+  }
   }
 
   async authenticateUser(req, res) {
