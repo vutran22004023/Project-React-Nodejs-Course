@@ -1,3 +1,4 @@
-import UserModel from './model/user.js';
+import UserModel from './user.model.js';
+import CourseModel from './course.model.js'
 
-export { UserModel };
+export { UserModel, CourseModel };

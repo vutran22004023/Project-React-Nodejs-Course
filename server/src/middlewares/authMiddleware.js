@@ -1,8 +1,8 @@
 import jwt from 'jsonwebtoken';
-import * as dotenv from 'dotenv';
-dotenv.config();
+import 'dotenv/config';
 
-const authAdmin = (req, res, next) => {
+class AuthMiddleware {
+authAdmin(req, res, next)  {
   const authHeader = req.headers.token;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -31,7 +31,7 @@ const authAdmin = (req, res, next) => {
   });
 };
 
-const authUser = (req, res, next) => {
+authUser(req, res, next)  {
   const authHeader = req.headers.token;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -61,12 +61,9 @@ const authUser = (req, res, next) => {
   });
 };
 
-const verifyResetToken = (token) => {
+verifyResetToken(token)  {
   return jwt.verify(token, process.env.RESET_TOKEN);
 };
+}
 
-export default {
-  verifyResetToken,
-  authAdmin,
-  authUser,
-};
+export default new AuthMiddleware();

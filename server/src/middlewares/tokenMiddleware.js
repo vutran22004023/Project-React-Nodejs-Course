@@ -1,8 +1,8 @@
 import jwt from 'jsonwebtoken';
-import * as dotenv from 'dotenv';
-dotenv.config();
+import 'dotenv/config';
 
-const generateAccessToken = async (payload) => {
+class TokenMiddleware {
+async generateAccessToken(payload) {
   try {
     const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN, { expiresIn: '7d' });
     return accessToken;
@@ -11,7 +11,7 @@ const generateAccessToken = async (payload) => {
   }
 };
 
-const generateAccessTokenResetPassword = async (payload) => {
+async generateAccessTokenResetPassword(payload) {
   try {
     const accessToken = jwt.sign(payload, process.env.RESET_TOKEN, { expiresIn: '5m' });
     return accessToken;
@@ -20,7 +20,7 @@ const generateAccessTokenResetPassword = async (payload) => {
   }
 };
 
-const generateRefreshToken = async (payload) => {
+async generateRefreshToken(payload) {
   try {
     const accessToken = jwt.sign(payload, process.env.REFRESH_TOKEN, { expiresIn: '365d' });
     return accessToken;
@@ -28,9 +28,6 @@ const generateRefreshToken = async (payload) => {
     throw error;
   }
 };
+}
 
-export default {
-  generateAccessToken,
-  generateRefreshToken,
-  generateAccessTokenResetPassword,
-};
+export default new TokenMiddleware();
