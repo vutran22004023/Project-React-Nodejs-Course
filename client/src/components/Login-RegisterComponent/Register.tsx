@@ -51,7 +51,7 @@ export default function Register() {
     if (!isError) {
       const mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
       const isEmailValid =
-        register.email.trim() !== "" && mailformat.test(register.email);
+        register?.email?.trim() !== "" && mailformat.test(register?.email || '');
       const isPasswordMatch = register.password === register.confirmPassword;
       setIsErrEmail(isEmailValid);
       setIsErrPass(isPasswordMatch);
