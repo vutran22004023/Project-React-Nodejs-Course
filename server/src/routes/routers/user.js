@@ -1,6 +1,7 @@
 import express from 'express';
-import { UserController } from '../../controllers/index.js';
+import UserController from '../../controllers/user.controller.js';
 import { AuthMiddleware } from '../../middlewares/index.js';
+
 const router = express.Router();
 
 router.get('/get-all-users', AuthMiddleware.authAdmin, UserController.getAllUsers);
