@@ -1,75 +1,83 @@
 import Course from '../models/course.model';
 
 class CourseController {
-  async getCourses(req, res) {
+  // Get all courses
+  async index(req, res) {
     try {
       const result = await Course.find({});
 
       return res.status(200).json({ data: result });
     } catch (error) {
-      console.log(error.message);
       res.status(500).json({ message: error.message });
     }
   }
 
-  async getCourse(req, res) {
+  // Get course detail
+  async get(req, res) {
     try {
-      if (!req.body.coursenameOrEmail || !req.body.password)
+      const { id } = req.params;
+      const result = await Course.findById(id);
+      if (!result) return res.status(404).json({ message: 'Course not found' });
+      res.status(200).json({ data: result });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+
+  // Add course
+  async add(req, res) {
+    try {
+      if (!req.body.title || !req.body.image || !req.body.description || !req.body.author)
         return res.status(400).json({ message: 'Missing required fields!' });
 
-      const course = await Course.findOne({
-        $or: [{ coursename: req.body.coursenameOrEmail }, { email: req.body.coursenameOrEmail }],
-      });
+      const course = {
+        title: req.body.title,
+        image: req.body.image,
+        description: req.body.description,
+        author: req.body.author,
+      };
 
-      if (!course) return res.status(404).json({ message: 'Course not found!' });
+      await Course.create(course);
 
-      if (course.password !== createHash('sha256').update(req.body.password).digest('hex'))
-        return res.status(401).json({ message: 'Credentials incorrect!' });
-
-      const { token, expires } = issueJWT(course);
-
-      const { password, ...auth } = course._doc;
-
-      return res
-        .status(200)
-        .cookie('jwtToken', token, { maxAge: expires, httpOnly: true })
-        .json({ success: true, message: 'Login successfully!', course: auth });
+      res.status(201).json({ message: 'Add course successfully!' });
     } catch (error) {
-      console.log(error.message);
       res.status(500).json({ message: error.message });
     }
   }
 
-  async addCourse(req, res) {
+  // Delete course
+  async delete(req, res) {
     try {
       const { id } = req.params;
-      const course = await Course.findById(id);
-      if (!course) return res.status(404).json({ message: 'Course not found' });
-      res.status(200).json(course);
+      const result = await Course.findByIdAndDelete(id);
+
+      if (!result) return res.status(404).json({ message: 'Course not found' });
+
+      res.status(200).json({ message: 'Delete course successfully!' });
     } catch (error) {
-      console.log(error.message);
       res.status(500).json({ message: error.message });
     }
   }
 
-  async deleteCourse(req, res) {
+  // Update course
+  async update(req, res) {
     try {
-      const courses = await Course.find({});
-      res.status(200).json({ sucess: true, courses: courses });
-    } catch (error) {
-      console.log(error.message);
-      res.status(500).json({ message: error.message });
-    }
-  }
+      if (!req.body.title || !req.body.image || !req.body.description || !req.body.author)
+        return res.status(400).json({ message: 'Missing required fields!' });
 
-  async updateCourse(req, res) {
-    try {
       const { id } = req.params;
-      const course = await Course.findById(id);
-      if (!course) return res.status(404).json({ message: 'Course not found' });
-      res.status(200).json(course);
+      const course = {
+        title: req.body.title,
+        image: req.body.image,
+        description: req.body.description,
+        author: req.body.author,
+      };
+
+      const result = await Course.findByIdAndUpdate(id, course);
+
+      if (!result) return res.status(404).json({ message: 'Course not found' });
+      res.status(201).json({ message: 'Update course successfully!' });
     } catch (error) {
-      console.log(error.message);
       res.status(500).json({ message: error.message });
     }
   }

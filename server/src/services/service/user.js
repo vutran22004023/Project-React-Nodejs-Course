@@ -1,5 +1,6 @@
 import { UserModel } from '../../models/index.js';
 import bcrypt from 'bcrypt';
+import mongoose from 'mongoose';
 
 const getAllUsers = async (limit, page, sort, filter) => {
   try {
