@@ -157,8 +157,9 @@ const resetPassword = async(req, res) => {
 
 const authenticateUser = async (req, res) => {
 try {
-    const { status, token } = req.body;
-    const response = await Login_Register_Service.authenticateUser(token, status)
+    const { status } = req.body;
+    const id = req.user.id;
+    const response = await Login_Register_Service.authenticateUser(id, status)
     return res.status(200).json(response)
 }catch(err) {
     return res.status(500).json({

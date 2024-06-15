@@ -31,3 +31,8 @@ export interface ResetPassProps {
   confirmPassword?: string;
   token?: string;
 }
+
+export interface StatusAuthProps {
+  status?: boolean;
+  token?: string;
+}

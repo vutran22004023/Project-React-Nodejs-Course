@@ -77,7 +77,7 @@ const Register = async(user) => {
         const resetToken = await TokenMiddleware.generateAccessTokenResetPassword({
           id: createdUser._id,
         })
-        await sendEmailResetPassword(createdUser, resetToken);
+        await sendEmailAuthenticateuser(createdUser, resetToken);
         return {
           status: 200,
           message: "Đăng ký thành công",
@@ -146,17 +146,16 @@ const resetPassword = async(id,newPassword) =>  {
   }
 }
 
-const authenticateUser = async (token,newPassword) => {
+const authenticateUser = async (id,status) => {
   try {
-    const decoded = TokenMiddleware.verifyResetToken(token);
-    const user = await UserModel.findById(decoded.id);
+    const user = await UserModel.findById(id);
     if (!user) {
         return {
             status: 'ERR',
             message: 'Người dùng không tồn tại',
         };
     }
-    user.status = true;
+    user.status = status;
     await user.save();
     return {
       status: 200,

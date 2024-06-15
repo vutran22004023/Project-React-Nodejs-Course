@@ -4,7 +4,7 @@ dotenv.config();
 
 const Emailauthenticateduser = async (user,resetToken) => {
     // đương dẫn client tới chỗ input nhập lại mật khẩu 
-    const resetUrl = `http://localhost:3000/authenticated-user?token=${resetToken}`;
+    const resetUrl = `${process.env.URL_CLIENT}/form-status-auth?token=${resetToken}&user=${user.name}`;
     let htmlContent = `
         <h2>Xác thực tài khoản</h2>
         <p>Xin chào ${user.name}</p>
