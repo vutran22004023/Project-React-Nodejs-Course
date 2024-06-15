@@ -16,8 +16,8 @@ const courseSchema = new mongoose.Schema(
       maxLength: 255,
       required: true,
     },
-    author: {
-      type: mongoose.Schema.Types.ObjectId,
+    user_id: {
+      type: mongoose.Types.ObjectId,
       ref: 'User',
       required: true,
     },

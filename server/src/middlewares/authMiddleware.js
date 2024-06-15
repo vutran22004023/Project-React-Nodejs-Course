@@ -21,6 +21,7 @@ class AuthMiddleware {
         });
       }
       if (user?.isAdmin === true) {
+        req.body.user_id = user._id;
         next();
       } else {
         return res.status(404).json({

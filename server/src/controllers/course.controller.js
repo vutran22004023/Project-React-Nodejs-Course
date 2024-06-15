@@ -5,8 +5,7 @@ class CourseController {
   async index(req, res) {
     try {
       const result = await Course.find({});
-
-      return res.status(200).json({ data: result });
+      res.status(200).json({ data: result });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
@@ -29,16 +28,7 @@ class CourseController {
     try {
       if (!req.body.title || !req.body.image || !req.body.description || !req.body.author)
         return res.status(400).json({ message: 'Missing required fields!' });
-
-      const course = {
-        title: req.body.title,
-        image: req.body.image,
-        description: req.body.description,
-        author: req.body.author,
-      };
-
-      await Course.create(course);
-
+      await Course.create(req.body);
       res.status(201).json({ message: 'Add course successfully!' });
     } catch (error) {
       res.status(500).json({ message: error.message });
@@ -49,11 +39,12 @@ class CourseController {
   async delete(req, res) {
     try {
       const { id } = req.params;
-      const result = await Course.findByIdAndDelete(id);
-
-      if (!result) return res.status(404).json({ message: 'Course not found' });
-
-      res.status(200).json({ message: 'Delete course successfully!' });
+      const result = await Course.findById(id);
+      if (!result) res.status(404).json({ message: 'Course not found' });
+      else if (result.user_id === req.body.user_id) {
+        await result.deleteOne();
+        res.status(200).json({ message: 'Delete course successfully!' });
+      } else res.status(403).json({ message: 'Unauthorized to delete this course!' });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
@@ -64,19 +55,20 @@ class CourseController {
     try {
       if (!req.body.title || !req.body.image || !req.body.description || !req.body.author)
         return res.status(400).json({ message: 'Missing required fields!' });
-
       const { id } = req.params;
-      const course = {
-        title: req.body.title,
-        image: req.body.image,
-        description: req.body.description,
-        author: req.body.author,
-      };
+      // const course = {
+      //   title: req.body.title,
+      //   image: req.body.image,
+      //   description: req.body.description,
+      //   author: req.body.author,
+      // };
 
-      const result = await Course.findByIdAndUpdate(id, course);
-
-      if (!result) return res.status(404).json({ message: 'Course not found' });
-      res.status(201).json({ message: 'Update course successfully!' });
+      const result = await Course.findById(id);
+      if (!result) res.status(404).json({ message: 'Course not found' });
+      else if (result.user_id === req.body.user_id) {
+        await result.updateOne(req.body);
+        res.status(200).json({ message: 'Update course successfully!' });
+      } else res.status(403).json({ message: 'Unauthorized to update this course!' });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
