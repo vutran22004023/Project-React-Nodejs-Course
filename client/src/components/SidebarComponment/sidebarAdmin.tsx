@@ -10,9 +10,9 @@ interface SidebarProps {
 
 export default function SidebarAdmin({ className, activePage }: SidebarProps) {
   const [navigation, setNavigation] = useState([
-    { name: "Dashboard", href: "/admin/dash-board", current: activePage === "dashboard" },
-    { name: "Thông tin pages", href: "/admin/information-page", current: activePage === "information" },
-    { name: "Bài viết", href: "/blog", current: activePage === "radio" },
+    { name: "Dashboard", href: "/admin/dash-board",icon:LayoutDashboard, current: activePage === "dashboard" },
+    { name: "Thông tin pages", href: "/admin/information-page",icon:SquareLibrary, current: activePage === "information" },
+    { name: "Bài viết", href: "/blog",icon:BookOpenText, current: activePage === "radio" },
   ]);
 
   const handleItemClick = (index : any) => {
@@ -40,13 +40,11 @@ export default function SidebarAdmin({ className, activePage }: SidebarProps) {
           <Button
             variant={item.current ? "default" : "secondary"}
             className={cn(
-              "w-full justify-start hover:bg-[#a1a1a1] mb-1 rounded",
+              "w-full justify-start hover:bg-[#a1a1a1] mb-3 rounded",
               item.current && "bg-[#777777] text-white"
             )}
           >
-            {item.name === "Dashboard" && <LayoutDashboard width={20} height={20} className="mr-1" />}
-            {item.name === "Thông tin pages" && <SquareLibrary width={20} height={20} className="mr-1" />}
-            {item.name === "Bài viết" && <BookOpenText width={20} height={20} className="mr-1" />}
+            <item.icon width={20} height={20} className="mr-1" />
             {item.name}
           </Button>
           </Link>

@@ -1,40 +1,39 @@
-import {combineReducers, configureStore} from '@reduxjs/toolkit'
-import userReducer from './Slides/userSide'
-import {
-    persistStore,
-    persistReducer,
-    FLUSH,
-    REHYDRATE,
-    PAUSE,
-    PERSIST,
-    PURGE,
-    REGISTER,
-  } from 'redux-persist'
-import storage from 'redux-persist/lib/storage'
+import { combineReducers } from 'redux';
+import { configureStore } from '@reduxjs/toolkit';
+import { persistReducer, persistStore } from 'redux-persist';
+import storage from 'redux-persist/lib/storage';
+import userReducer from './Slides/userSide'; // Adjust path as necessary
 
+// Define RootState
+export type RootState = ReturnType<typeof rootReducer>;
+
+// Combine reducers
+const rootReducer = combineReducers({
+  user: userReducer,
+  // Add other reducers as needed
+});
+
+// Configure persist options
 const persistConfig = {
-    key: 'root',
-    version: 1,
-    storage,
-    blacklist: ['user']
-  }
-  const rootReducer = combineReducers({
-    user:userReducer,
-    // product:productReducer,
-    // order: orderReducer,
-    // pagination:paginationReducer,
-    // information:informationReducer,
-    // payorderproduct: payOrderProductReducer
-})
-  
-  const persistedReducer = persistReducer(persistConfig, rootReducer)
+  key: 'root',
+  version: 1,
+  storage,
+  blacklist: ['user'], // Blacklist 'user' reducer from being persisted (if needed)
+};
+
+// Create persisted reducer
+const persistedReducer = persistReducer(persistConfig, rootReducer);
+
+// Create store instance
 export const store = configureStore({
-    reducer: persistedReducer,
-    middleware: (getDefaultMiddleware) =>
+  reducer: persistedReducer,
+  middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+        ignoredActions: ['persist/PERSIST'], // Ignore redux-persist actions
       },
     }),
-})
-export let persistor = persistStore(store)
+});
+
+// Create persistor
+export const persistor = persistStore(store);
