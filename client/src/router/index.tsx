@@ -1,5 +1,6 @@
 import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import PrivateRoute from './PrivateRoute';
 import LayoutPageHome from "@/pages/ContentPages/index";
 import CoursesLoginLayout from "@/pages/ContentPages/CoursesPage/CoursesLogin/index";
 import UserLayout from "@/pages/ContentPages/UserPage/index"
@@ -25,6 +26,7 @@ const App = () => {
     <Suspense fallback={<div>Loading...</div>}>
       <Routes>
         {/* Router isSidebarVisible  isHeaderVisible*/}
+        <Route path="/"  element={<PrivateRoute/>}>
         <Route
           path="/"
           element={
@@ -64,6 +66,8 @@ const App = () => {
         <Route path="/admin" element={<AdminLayout isSidebarVisible={true}  isHeaderVisible={true}/>}>
           <Route path="dash-board" index element={<DashBoardAdmin />} />
           <Route path="information-page" index element={<InformationpageAdmin />} />
+        </Route>
+        
         </Route>
       </Routes>
       </Suspense>

@@ -23,10 +23,16 @@ const loginIn  = async(req, res) => {
             return res.status(401).json(response);
         }
 
-        res.cookie('accessToken', response.access_Token, {
-            httpOnly: true,
-            secure: true, 
-            sameSite: 'Strict'
+        res.cookie('access_Token', response.access_Token, {
+            httpOnly: false, // Corrected property name
+            secure: false,
+            samesite: 'strict'
+        });
+
+        res.cookie('refresh_Token', response.refresh_Token, {
+            httpOnly: false, // Corrected property name
+            secure: false,
+            samesite: 'strict'
         });
         return res.status(200).json(response)
     }catch(err) {
