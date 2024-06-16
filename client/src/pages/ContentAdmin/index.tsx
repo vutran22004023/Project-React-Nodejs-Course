@@ -17,8 +17,8 @@ export default function Index({
       ? "dashboard"
       : path.includes("/admin/information-page")
       ? "information"
-      : path.includes("/blog")
-      ? "radio"
+      : path.includes("/admin/courses")
+      ? "courses"
       : "";
   return (
     <>

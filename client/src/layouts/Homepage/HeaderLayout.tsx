@@ -7,6 +7,7 @@ import {
   BookOpenText,
   Album,
   NotebookPen,
+  Lock,
 } from "lucide-react";
 // import { CalendarDays } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -29,34 +30,39 @@ import LoginComponent from "@/components/Login-RegisterComponent/Login";
 import RegisterComponent from "@/components/Login-RegisterComponent/Register";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/redux/store";
-import {resetUser} from '@/redux/Slides/userSide'
-import axios from 'axios'
+import { resetUser } from "@/redux/Slides/userSide";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 export default function HeaderLayout() {
-  const navigate = useNavigate()
-  const dispatch = useDispatch()
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user);
 
   const handleLogout = async () => {
     try {
-      localStorage.removeItem('access_Token');
-      localStorage.removeItem('refresh_Token');
+      localStorage.removeItem("access_Token");
+      localStorage.removeItem("refresh_Token");
       document.cookie =
-        'access_Token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        "access_Token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       document.cookie =
-        'refresh_Token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        "refresh_Token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
-      await axios.post('/api/login-out');
+      await axios.post("/api/login-out");
       dispatch(resetUser());
       window.location.reload();
     } catch (error) {
-      console.error('Error logging out:', error);
+      console.error("Error logging out:", error);
     }
   };
   return (
     <div className="fixed top-0 left-0 bg-[#fff] right-0 z-10 border-b text-white p-3 flex justify-between items-center">
-      <h1 className="text-[#040404] font-bold text-2xl" onClick={() => navigate('/')}>Header</h1>
+      <h1
+        className="text-[#040404] font-bold text-2xl"
+        onClick={() => navigate("/")}
+      >
+        Header
+      </h1>
       <div className="flex items-center w-[500px] px-4 py-2 ">
         <input
           type="text"
@@ -70,7 +76,7 @@ export default function HeaderLayout() {
         />
       </div>
       <div className="flex gap-4 items-center mr-4">
-        {user.access_Token && user.status === true  ? (
+        {user.access_Token && user.status === true ? (
           <>
             <Link to="/my-courses" className="text-black">
               Khóa học của tôi
@@ -139,13 +145,26 @@ export default function HeaderLayout() {
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
+                {user.isAdmin === true && (
+                  <Link to={"/admin/dash-board"}>
+                    <DropdownMenuItem className="cursor-pointer">
+                      <Lock className="mr-2 h-4 w-4" />
+                      <span className="hover:text-[#a1a1a1]">
+                        Thông tin trang web
+                      </span>
+                    </DropdownMenuItem>
+                  </Link>
+                )}
                 <Link to={"/information-user"}>
                   <DropdownMenuItem className="cursor-pointer">
                     <Settings className="mr-2 h-4 w-4" />
                     <span className="hover:text-[#a1a1a1]">Cài đặt</span>
                   </DropdownMenuItem>
                 </Link>
-                <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={handleLogout}
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   <span className="hover:text-[#a1a1a1]">Đăng xuất</span>
                 </DropdownMenuItem>

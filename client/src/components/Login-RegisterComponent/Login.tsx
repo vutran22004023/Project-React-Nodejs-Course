@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { User, ArrowBigLeft } from "lucide-react";
+import React, { useState, useEffect, useRef  } from "react";
+import { User, ArrowBigLeft,  } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ModalComponent from "@/components/ModalComponent/Modal";
 import ButtonComponent from "@/components/ButtonComponent/Button";
@@ -105,6 +105,20 @@ export default function Login() {
     setIsModalInputLogin(false);
     setIsModalForgotPass(false);
     setIsModalRegister(true);
+  };
+
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      if (e.target === emailRef.current) {
+        passwordRef.current?.focus();
+      } else if (e.target === passwordRef.current) {
+        if(login?.password?.length && login?.email?.length) {
+          handleOnClickLogin();
+        }
+      }
+    }
   };
 
   return (
@@ -224,8 +238,10 @@ export default function Login() {
                     Email
                   </Label>
                   <Input
+                    ref={emailRef}
                     name="email"
                     value={login.email}
+                    onKeyDown={handleKeyDown}
                     onChange={handleOnChangeLogin}
                     className="col-span-3 w-[400px] "
                     style={{ borderRadius: "10px", padding: "20px" }}
@@ -234,13 +250,15 @@ export default function Login() {
                 </div>
                 <div className="relative w-[400px]">
                   <Input
+                    ref={passwordRef}
                     name="password"
                     value={login.password}
+                    onKeyDown={handleKeyDown}
                     onChange={handleOnChangeLogin}
                     type={showPassword ? "text" : "password"}
                     className="col-span-3 w-full"
                     style={{ borderRadius: "10px", padding: "20px" }}
-                    placeholder="Xác thực mật khẩu"
+                    placeholder="Mật khẩu"
                   />
                   <button
                     type="button"
@@ -274,6 +292,8 @@ export default function Login() {
                     </div>
                   )}
                   <ButtonComponent
+                    type='submit'
+                    onKeyDown={handleKeyDown}
                     className="p-5 m-0 mb-4"
                     style={{ border: "1px solid #9c9c9c" }}
                     disabled={

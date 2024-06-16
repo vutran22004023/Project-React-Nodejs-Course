@@ -115,7 +115,6 @@ const PrivateRoute: React.FC = () => {
           token: `Bearer ${accessToken}`
         }
       });
-      console.log(response);
       dispatch(updateUser({ ...response.data.data, access_Token: accessToken }));
     } catch (error) {
       console.error('Error fetching user details:', error);

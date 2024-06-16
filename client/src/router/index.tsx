@@ -20,6 +20,7 @@ const FormResetPass = lazy(() => import('@/pages/ContentPages/FromForgotPass/For
 const FormStatusAuth = lazy(() => import('@/pages/ContentPages/FromForgotPass/FormStatusAuth'))
 const DashBoardAdmin = lazy(() => import('@/pages/ContentAdmin/DashBoards/dashboard'))
 const InformationpageAdmin = lazy(() => import('@/pages/ContentAdmin/Informationpages/Informationpage'))
+const CoursesAdmin = lazy(() => import('@/pages/ContentAdmin/Courses/courses'))
 const App = () => {
   return (
     <Router>
@@ -66,6 +67,7 @@ const App = () => {
         <Route path="/admin" element={<AdminLayout isSidebarVisible={true}  isHeaderVisible={true}/>}>
           <Route path="dash-board" index element={<DashBoardAdmin />} />
           <Route path="information-page" index element={<InformationpageAdmin />} />
+          <Route path="courses" index element={<CoursesAdmin />} />
         </Route>
         
         </Route>
