@@ -8,6 +8,7 @@ const initialState = {
   avatar: "",
   isAdmin: false,
   status: false,
+  password: '',
 };
 
 const userSlice = createSlice({
@@ -23,6 +24,7 @@ const userSlice = createSlice({
       state.id = _id || "";
       state.isAdmin = isAdmin || false;
       state.status = status || false;
+      state.password = 'not password'
     },
     resetUser: (state) => {
       Object.assign(state, initialState);

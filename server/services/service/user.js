@@ -38,7 +38,7 @@ const getDetailUser = async (id) => {
     try {
         const checkUser = await UserModel.findOne({
             _id:id
-        })
+        }).select('-password')
         if(!checkUser) {
             return {
                 status: "ERR",
@@ -49,7 +49,8 @@ const getDetailUser = async (id) => {
             status: 200,
             message: `Show thông tin của id: ${checkUser.id}`,
             data: {
-              ...checkUser._doc,
+            password: 'Not password',
+            ...checkUser._doc,
             }
           };
     }catch(err) {
