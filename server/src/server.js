@@ -9,7 +9,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: process.env.URL,
+    origin: process.env.URL_CLIENT,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -23,7 +23,7 @@ app.use('/api', routes);
 
 const port = process.env.PORT || 3002;
 // const url = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.qm0ui7p.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
-const url = 'mongodb://localhost:27017';
+const url = 'mongodb://localhost:27017/learning_website';
 
 app.listen(port, async () => {
   await mongoose
