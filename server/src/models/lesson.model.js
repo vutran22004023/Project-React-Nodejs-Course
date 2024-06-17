@@ -3,7 +3,7 @@ import slug from 'mongoose-slug-generator';
 
 mongoose.plugin(slug);
 
-const courseSchema = new mongoose.Schema(
+const lessonSchema = new mongoose.Schema(
   {
     title: {
       type: String,
@@ -12,19 +12,15 @@ const courseSchema = new mongoose.Schema(
     },
     description: {
       type: String,
-      required: true,
-    },
-    image: {
-      type: String,
-      maxLength: 255,
     },
     video: {
       type: String,
       maxLength: 255,
+      required: true,
     },
-    user_id: {
+    course_id: {
       type: mongoose.Types.ObjectId,
-      ref: 'User',
+      ref: 'Course',
       required: true,
     },
     slug: { type: String, slug: 'title', slugPaddingSize: 4, unique: true },
@@ -34,4 +30,4 @@ const courseSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model('Course', courseSchema);
+export default mongoose.model('Lesson', lessonSchema);
