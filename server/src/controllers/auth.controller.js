@@ -6,7 +6,7 @@ class AuthController {
   async loginIn(req, res) {
     try {
       const { email, password } = req.body;
-      const mailformat = '/^w+([.-]?w+)*@w+([.-]?w+)*(.w{2,3})+$/';
+      const mailformat = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
       const isCheckEmail = mailformat.test(email);
       if (!email || !password) {
         return res.status(200).json({
@@ -37,7 +37,7 @@ class AuthController {
       });
       return res.status(200).json(response);
     } catch (err) {
-      return res.status(404).json({
+      return res.status(500).json({
         message: err,
       });
     }
@@ -46,7 +46,7 @@ class AuthController {
   async Register(req, res) {
     try {
       const { name, email, password, confirmPassword } = req.body;
-      const mailformat = '/^w+([.-]?w+)*@w+([.-]?w+)*(.w{2,3})+$/';
+      const mailformat = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
       const isCheckEmail = mailformat.test(email);
       if (!name || !email || !password || !confirmPassword) {
         return res.status(200).json({
@@ -79,7 +79,7 @@ class AuthController {
       const response = await Login_Register_Service.Register(req.body);
       return res.status(200).json(response);
     } catch (err) {
-      return res.status(404).json({
+      return res.status(500).json({
         message: err,
       });
     }
@@ -116,7 +116,7 @@ class AuthController {
   async forgotPassword(req, res) {
     try {
       const { email } = req.body;
-      const mailformat = '/^w+([.-]?w+)*@w+([.-]?w+)*(.w{2,3})+$/';
+      const mailformat = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
       const isCheckEmail = mailformat.test(email);
       if (!email) {
         return res.status(200).json({
