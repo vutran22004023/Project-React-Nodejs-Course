@@ -12,6 +12,7 @@ const lessonSchema = new mongoose.Schema(
     },
     description: {
       type: String,
+      default: null,
     },
     video: {
       type: String,

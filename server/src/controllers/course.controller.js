@@ -15,7 +15,53 @@ class CourseController {
   async get(req, res) {
     try {
       const { slug } = req.params;
-      const result = await Course.populate('lessons', { title: 1, slug: 1 }).findOne({ slug: slug });
+      const result = await Course.aggregate([
+        { $match: { slug: slug } },
+        {
+          $lookup: {
+            from: 'lessons',
+            localField: '_id',
+            foreignField: 'course_id',
+            as: 'lessons',
+          },
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'user_id',
+            foreignField: '_id',
+            as: 'user',
+          },
+        },
+        {
+          $project: {
+            title: 1,
+            description: 1,
+            price: 1,
+            imaga: 1,
+            video: 1,
+            lessons: {
+              title: 1,
+              slug: 1,
+            },
+            user: {
+              $arrayElemAt: [
+                {
+                  $map: {
+                    input: '$user',
+                    in: {
+                      name: '$$this.name',
+                      email: '$$this.email',
+                      avatar: '$$this.avatar',
+                    },
+                  },
+                },
+                0,
+              ],
+            },
+          },
+        },
+      ]);
       if (!result) return res.status(404).json({ message: 'Course not found' });
       res.status(200).json({ data: result });
     } catch (error) {

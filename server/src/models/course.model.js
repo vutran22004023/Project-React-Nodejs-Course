@@ -17,10 +17,16 @@ const courseSchema = new mongoose.Schema(
     image: {
       type: String,
       maxLength: 255,
+      default: null,
     },
     video: {
       type: String,
       maxLength: 255,
+      default: null,
+    },
+    price: {
+      type: Number,
+      default: null,
     },
     user_id: {
       type: mongoose.Types.ObjectId,
