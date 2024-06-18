@@ -1,6 +1,6 @@
     import axios, { AxiosResponse } from 'axios';
-
-    import {User,Registers, LoginProps,EmailProps, ResetPassProps} from '@/types/index'
+    const axiosJWT = axios.create()
+    import {User,Registers, LoginProps,EmailProps, ResetPassProps, StatusAuthProps} from '@/types/index'
     const Login = async( data:LoginProps): Promise<LoginProps> => {
         try{
             const response: AxiosResponse<LoginProps> = await axios.post(`api/login-in`, data);
@@ -50,10 +50,39 @@
         }
     }
 
+    const StatusAuth = async(data : StatusAuthProps): Promise<StatusAuthProps> => {
+        try{
+            const response: AxiosResponse<ResetPassProps> = await axios.post(`api/authenticate-user`, data,{
+                headers: {
+                    token: `Bearer ${data.token}`,
+                }
+            });
+            return response.data;
+        }catch {
+            throw new Error('Error login');
+        }
+    }
+
+    const Refreshtoken = async(data : StatusAuthProps): Promise<StatusAuthProps> => {
+        try{
+            const response: AxiosResponse<ResetPassProps> = await axios.post(`api/refresh-token`, data,{
+                headers: {
+                    token: `Bearer ${data.token}`,
+                }
+            });
+            return response.data;
+        }catch {
+            throw new Error('Error login');
+        }
+    }
+
     export default {
         Login,
         Register,
         LoginOut,
         ForgotPassword,
-        ResetPass
+        ResetPass,
+        StatusAuth,
+        Refreshtoken,
+        axiosJWT
     }

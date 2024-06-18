@@ -7,7 +7,7 @@ class TokenMiddleware {
       const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN, { expiresIn: '7d' });
       return accessToken;
     } catch (error) {
-      throw error;
+      console.log(error);
     }
   }
 
@@ -16,16 +16,16 @@ class TokenMiddleware {
       const accessToken = jwt.sign(payload, process.env.RESET_TOKEN, { expiresIn: '5m' });
       return accessToken;
     } catch (error) {
-      throw error;
+      console.log(error);
     }
   }
 
   async generateRefreshToken(payload) {
     try {
-      const accessToken = jwt.sign(payload, process.env.REFRESH_TOKEN, { expiresIn: '365d' });
+      const accessToken = jwt.sign(payload, process.env.REFRESH_TOKEN, { expiresIn: '7d' });
       return accessToken;
     } catch (error) {
-      throw error;
+      console.log(error);
     }
   }
 }

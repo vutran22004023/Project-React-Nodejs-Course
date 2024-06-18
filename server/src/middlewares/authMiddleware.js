@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
+import { TokenMiddleware } from './index.js';
 
 class AuthMiddleware {
   authAdmin(req, res, next) {
@@ -21,7 +22,6 @@ class AuthMiddleware {
         });
       }
       if (user?.isAdmin === true) {
-        req.body.user_id = user._id;
         next();
       } else {
         return res.status(404).json({
@@ -75,6 +75,41 @@ class AuthMiddleware {
         req.user = user;
         next();
       }
+    });
+  }
+
+  refreshAccessToken(req, res) {
+    const refreshToken = req.body.refreshToken;
+    console.log(refreshToken);
+    if (!refreshToken) {
+      return res.status(401).json({
+        status: 'ERR',
+        message: 'Không có refreshToken được cung cấp',
+      });
+    }
+
+    jwt.verify(refreshToken, process.env.REFRESH_TOKEN, (err, user) => {
+      if (err) {
+        return res.status(403).json({
+          status: 'ERR',
+          message: 'RefreshToken không hợp lệ',
+        });
+      }
+      // Generate new access token
+      const accessToken = TokenMiddleware.generateAccessToken(user.id, user.isAdmin);
+      // console.log(accessToken)
+      // // Set the new accessToken in a cookie
+      // res.cookie('access_Token', accessToken, {
+      //     httpOnly: false, // Corrected property name
+      //     secure: false,
+      //     samesite: 'strict',
+      //     maxAge: 15 * 60 * 1000
+      // });
+
+      // Return new access token to client
+      return res.status(200).json({
+        accessToken: accessToken,
+      });
     });
   }
 }

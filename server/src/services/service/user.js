@@ -39,7 +39,7 @@ const getDetailUser = async (id) => {
   try {
     const checkUser = await UserModel.findOne({
       _id: id,
-    });
+    }).select('-password');
     if (!checkUser) {
       return {
         status: 'ERR',
@@ -50,13 +50,15 @@ const getDetailUser = async (id) => {
       status: 200,
       message: `Show thông tin của id: ${checkUser.id}`,
       data: {
+        password: 'Not password',
         ...checkUser._doc,
       },
     };
   } catch (err) {
-    return res.status(404).json({
+    return {
+      status: 'ERR',
       message: err,
-    });
+    };
   }
 };
 
@@ -87,9 +89,10 @@ const updateUser = async (id, data, isAdmin) => {
       },
     };
   } catch (err) {
-    return res.status(404).json({
+    return {
+      status: 'ERR',
       message: err,
-    });
+    };
   }
 };
 
@@ -110,9 +113,10 @@ const deleteUser = async (id) => {
       message: `Xóa thành công id : ${deleteUser._id}`,
     };
   } catch (err) {
-    return res.status(404).json({
+    return {
+      status: 'ERR',
       message: err,
-    });
+    };
   }
 };
 
@@ -137,9 +141,10 @@ const deleteManyUser = async (ids) => {
       message: 'Xóa người dùng thành công',
     };
   } catch (err) {
-    return res.status(404).json({
+    return {
+      status: 'ERR',
       message: err,
-    });
+    };
   }
 };
 

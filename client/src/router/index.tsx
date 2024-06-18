@@ -1,9 +1,10 @@
 import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import PrivateRoute from './PrivateRoute';
 import LayoutPageHome from "@/pages/ContentPages/index";
 import CoursesLoginLayout from "@/pages/ContentPages/CoursesPage/CoursesLogin/index";
 import UserLayout from "@/pages/ContentPages/UserPage/index"
-
+import AdminLayout from '@/pages/ContentAdmin/index'
 
 const HomePage = lazy(() => import('@/pages/ContentPages/HomePage/Home'));
 const RoutePage = lazy(() => import('@/pages/ContentPages/RoutePage/Route'));
@@ -16,12 +17,17 @@ const PasswordAndSecurity = lazy(() => import('@/pages/ContentPages/UserPage/Use
 const PersonalPage = lazy(() => import('@/pages/ContentPages/UserPage/User/PersonalPage'));
 const PostsBlog = lazy(() => import('@/pages/ContentPages/UserPage/User/postsblog'));
 const FormResetPass = lazy(() => import('@/pages/ContentPages/FromForgotPass/FormResetPass'));
+const FormStatusAuth = lazy(() => import('@/pages/ContentPages/FromForgotPass/FormStatusAuth'))
+const DashBoardAdmin = lazy(() => import('@/pages/ContentAdmin/DashBoards/dashboard'))
+const InformationpageAdmin = lazy(() => import('@/pages/ContentAdmin/Informationpages/Informationpage'))
+const CoursesAdmin = lazy(() => import('@/pages/ContentAdmin/Courses/courses'))
 const App = () => {
   return (
     <Router>
     <Suspense fallback={<div>Loading...</div>}>
       <Routes>
         {/* Router isSidebarVisible  isHeaderVisible*/}
+        <Route path="/"  element={<PrivateRoute/>}>
         <Route
           path="/"
           element={
@@ -42,6 +48,7 @@ const App = () => {
         >
           <Route path="blog/blog-detail" element={<BlogPageDetail />} />
           <Route path="reset-password" element={<FormResetPass />} />
+          <Route path="form-status-auth" element={<FormStatusAuth />} />
         </Route>
 
 
@@ -55,6 +62,14 @@ const App = () => {
         {/* Router CoursesLogin */}
         <Route path="/" element={<CoursesLoginLayout isHeaderVisible={true} />}>
           <Route path="/courses-login" index element={<CoursesLoginPage />} />
+        </Route>
+
+        <Route path="/admin" element={<AdminLayout isSidebarVisible={true}  isHeaderVisible={true}/>}>
+          <Route path="dash-board" index element={<DashBoardAdmin />} />
+          <Route path="information-page" index element={<InformationpageAdmin />} />
+          <Route path="courses" index element={<CoursesAdmin />} />
+        </Route>
+        
         </Route>
       </Routes>
       </Suspense>

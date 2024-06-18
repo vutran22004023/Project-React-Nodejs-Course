@@ -1,19 +1,18 @@
 import nodemailer from 'nodemailer';
-import * as dotenv from 'dotenv';
-dotenv.config();
+import 'dotenv/config';
 
 const Emailauthenticateduser = async (user, resetToken) => {
   // đương dẫn client tới chỗ input nhập lại mật khẩu
-  const resetUrl = `http://localhost:3000/authenticated-user?token=${resetToken}`;
+  const resetUrl = `${process.env.URL_CLIENT}/form-status-auth?token=${resetToken}&user=${user.name}`;
   let htmlContent = `
-        <h2>Xác thực tài khoản</h2>
-        <p>Xin chào ${user.name}</p>
-        <p>Bạn đã đăng ký tài khoản thành công. Vui lòng nhấp vào liên kết dưới đây để xác thực tài khoản của bạn:</p>
-        <a href="${resetUrl}">Xác thực tài khoản</a>
-        <p>Nếu bạn không thực hiện đăng ký, vui lòng bỏ qua email này.</p>
-        <p>Trân trọng,</p>
-        <p>Đội ngũ hỗ trợ của chúng tôi</p>
-    `;
+      <h2>Xác thực tài khoản</h2>
+      <p>Xin chào ${user.name}</p>
+      <p>Bạn đã đăng ký tài khoản thành công. Vui lòng nhấp vào liên kết dưới đây để xác thực tài khoản của bạn:</p>
+      <a href="${resetUrl}">Xác thực tài khoản</a>
+      <p>Nếu bạn không thực hiện đăng ký, vui lòng bỏ qua email này.</p>
+      <p>Trân trọng,</p>
+      <p>Đội ngũ hỗ trợ của chúng tôi</p>
+  `;
   const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 465,

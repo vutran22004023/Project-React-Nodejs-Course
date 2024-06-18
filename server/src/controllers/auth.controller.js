@@ -24,10 +24,16 @@ class AuthController {
         return res.status(401).json(response);
       }
 
-      res.cookie('accessToken', response.access_Token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'Strict',
+      res.cookie('access_Token', response.access_Token, {
+        httpOnly: false, // Corrected property name
+        secure: false,
+        samesite: 'strict',
+      });
+
+      res.cookie('refresh_Token', response.refresh_Token, {
+        httpOnly: false, // Corrected property name
+        secure: false,
+        samesite: 'strict',
       });
       return res.status(200).json(response);
     } catch (err) {
@@ -157,8 +163,9 @@ class AuthController {
 
   async authenticateUser(req, res) {
     try {
-      const { status, token } = req.body;
-      const response = await Login_Register_Service.authenticateUser(token, status);
+      const { status } = req.body;
+      const id = req.user.id;
+      const response = await Login_Register_Service.authenticateUser(id, status);
       return res.status(200).json(response);
     } catch (err) {
       return res.status(500).json({

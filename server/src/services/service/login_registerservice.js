@@ -1,5 +1,5 @@
 import { UserModel } from '../../models/index.js';
-import { TokenMiddleware, AuthMiddleware } from '../../middlewares/index.js';
+import { TokenMiddleware } from '../../middlewares/index.js';
 import sendEmailResetPassword from '../../emails/EmailforgotPassword.js';
 import sendEmailAuthenticateuser from '../../emails/Emailauthenticateduser.js';
 import bcrypt from 'bcrypt';
@@ -41,14 +41,16 @@ const LoginIn = async (user) => {
         refresh_Token,
       };
     } else {
-      return res.status(404).json({
-        message: 'Đăng nhập không thành công',
-      });
+      return {
+        status: 'ERR',
+        message: 'Lỗi không xác định',
+      };
     }
   } catch (err) {
-    return res.status(404).json({
+    return {
+      status: 'ERR',
       message: err,
-    });
+    };
   }
 };
 
@@ -74,7 +76,7 @@ const Register = async (user) => {
       const resetToken = await TokenMiddleware.generateAccessTokenResetPassword({
         id: createdUser._id,
       });
-      await sendEmailResetPassword(createdUser, resetToken);
+      await sendEmailAuthenticateuser(createdUser, resetToken);
       return {
         status: 200,
         message: 'Đăng ký thành công',
@@ -87,9 +89,10 @@ const Register = async (user) => {
       throw new Error('Tạo người dùng thất bại.');
     }
   } catch (err) {
-    return res.status(404).json({
+    return {
+      status: 'ERR',
       message: err,
-    });
+    };
   }
 };
 
@@ -113,9 +116,10 @@ const forgotPassword = async (email) => {
       message: 'Đã gữi form tới email để cài đặt lại mật khẩu.',
     };
   } catch (err) {
-    return res.status(404).json({
+    return {
+      status: 'ERR',
       message: err,
-    });
+    };
   }
 };
 
@@ -137,32 +141,33 @@ const resetPassword = async (id, newPassword) => {
       message: 'Đặt lại mật khẩu thành công',
     };
   } catch (err) {
-    return res.status(404).json({
+    return {
+      status: 'ERR',
       message: err,
-    });
+    };
   }
 };
 
-const authenticateUser = async (token, newPassword) => {
+const authenticateUser = async (id, status) => {
   try {
-    const decoded = TokenMiddleware.verifyResetToken(token);
-    const user = await UserModel.findById(decoded.id);
+    const user = await UserModel.findById(id);
     if (!user) {
       return {
         status: 'ERR',
         message: 'Người dùng không tồn tại',
       };
     }
-    user.status = true;
+    user.status = status;
     await user.save();
     return {
       status: 200,
       message: 'Cập nhập trạng thái thành công',
     };
   } catch (err) {
-    return res.status(404).json({
+    return {
+      status: 'ERR',
       message: err,
-    });
+    };
   }
 };
 
