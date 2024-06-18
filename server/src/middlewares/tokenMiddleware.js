@@ -4,8 +4,8 @@ import 'dotenv/config';
 class TokenMiddleware {
   async generateAccessToken(payload) {
     try {
-      const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN, { expiresIn: '7d' });
-      return accessToken;
+      const token = jwt.sign(payload, process.env.ACCESS_TOKEN, { expiresIn: '7d' });
+      return token;
     } catch (error) {
       console.log(error);
     }
@@ -13,8 +13,8 @@ class TokenMiddleware {
 
   async generateAccessTokenResetPassword(payload) {
     try {
-      const accessToken = jwt.sign(payload, process.env.RESET_TOKEN, { expiresIn: '5m' });
-      return accessToken;
+      const token = jwt.sign(payload, process.env.RESET_TOKEN, { expiresIn: '5m' });
+      return token;
     } catch (error) {
       console.log(error);
     }
@@ -22,8 +22,8 @@ class TokenMiddleware {
 
   async generateRefreshToken(payload) {
     try {
-      const accessToken = jwt.sign(payload, process.env.REFRESH_TOKEN, { expiresIn: '7d' });
-      return accessToken;
+      const token = jwt.sign(payload, process.env.REFRESH_TOKEN, { expiresIn: '7d' });
+      return token;
     } catch (error) {
       console.log(error);
     }

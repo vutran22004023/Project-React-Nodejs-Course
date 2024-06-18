@@ -79,8 +79,7 @@ class AuthMiddleware {
   }
 
   refreshAccessToken(req, res) {
-    const refreshToken = req.body.refreshToken;
-    console.log(refreshToken);
+    const refreshToken = req.headers.token.split(' ')[1];
     if (!refreshToken) {
       return res.status(401).json({
         status: 'ERR',
@@ -96,7 +95,7 @@ class AuthMiddleware {
         });
       }
       // Generate new access token
-      const accessToken = TokenMiddleware.generateAccessToken(user.id, user.isAdmin);
+      const accessToken = TokenMiddleware.generateAccessToken(user._id, user.isAdmin);
       // console.log(accessToken)
       // // Set the new accessToken in a cookie
       // res.cookie('access_Token', accessToken, {
