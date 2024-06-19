@@ -6,7 +6,7 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { cn } from "@/lib/utils";
-import ButtonComponment from "@/components/ButtonComponent/Button";
+import ButtonComponent from "@/components/ButtonComponent/Button";
 import {
   Form,
   FormControl,
@@ -27,50 +27,66 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 
-const profileFormSchema = z.object({
-  namepage: z
-    .string({
-      required_error: "Vui lòng nhập name page",
-    })
-    .min(2, {
-      message: "Tên trang web phải ít nhất 2 kí tự",
-    })
-    .max(30, {
-      message: "Tên trang web phải tối đa nhất 30 kí tự",
-    }),
-  description: z.string().max(300).min(4),
-  urls: z
-    .array(
-      z.object({
-        value: z.string().url({ message: "Please enter a valid URL." }),
-      })
-    )
-    .optional(),
+interface IProp {
+  chapter: any;
+  chapterIndex: any;
+  control: any;
+  removeChapter: any;
+}
+// Schema validation using Zod
+const videoSchema = z.object({
+  childname: z.string().min(1, "Vui lòng nhập tên video"),
+  video: z.string().url("Vui lòng nhập URL hợp lệ"),
+  time: z.string().optional(),
 });
 
-type ProfileFormValues = z.infer<typeof profileFormSchema>;
+const chapterSchema = z.object({
+  namechapter: z.string().min(1, "Vui lòng nhập tên chương"),
+  videos: z.array(videoSchema),
+});
 
-// This can come from your database or API.
-const defaultValues: Partial<ProfileFormValues> = {
-  description: "I own a computer.",
-  urls: [
-    { value: "https://shadcn.com" },
-    { value: "http://twitter.com/shadcn" },
+const courseFormSchema = z.object({
+  name: z
+    .string()
+    .min(2, "Tên khóa học phải ít nhất 2 kí tự")
+    .max(30, "Tên khóa học phải tối đa 30 kí tự"),
+  price: z.enum(["free", "paid"]),
+  priceAmount: z.string().optional(),
+  chapters: z.array(chapterSchema),
+});
+
+type CourseFormValues = z.infer<typeof courseFormSchema>;
+
+// Default values (optional)
+const defaultValues: Partial<CourseFormValues> = {
+  chapters: [
+    {
+      namechapter: "Chapter 1",
+      videos: [
+        { childname: "Video 1.1", video: "http://video-url-1", time: "10:00" },
+        { childname: "Video 1.2", video: "http://video-url-2", time: "15:00" },
+      ],
+    },
   ],
 };
-export default function newCourses() {
-  const form = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileFormSchema),
+
+export default function NewCourses() {
+  const form = useForm<CourseFormValues>({
+    resolver: zodResolver(courseFormSchema),
     defaultValues,
     mode: "onChange",
   });
 
-  const { fields, append } = useFieldArray({
-    name: "urls",
+  const {
+    fields: chapterFields,
+    append: appendChapter,
+    remove: removeChapter,
+  } = useFieldArray({
+    name: "chapters",
     control: form.control,
   });
 
-  function onSubmit(data: ProfileFormValues) {
+  const onSubmit =(data: CourseFormValues) => {
     toast({
       title: "You submitted the following values:",
       description: (
@@ -81,6 +97,7 @@ export default function newCourses() {
     });
     console.log(data);
   }
+
   return (
     <ModalComponent
       triggerContent={
@@ -91,95 +108,216 @@ export default function newCourses() {
           Thêm khóa học
         </Button>
       }
-      contentHeader={<></>}
+      contentHeader={<>
+      <div>Thêm khóa học mới</div>
+      </>}
       contentBody={
-        <div className="p-2">
+        <div className="p-2 max-h-[500px] overflow-y-auto">
+          {" "}
+          {/* Add max height and scroll */}
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <form className="space-y-4">
               <FormField
                 control={form.control}
-                name="namepage"
+                name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Tên trang web</FormLabel>
+                    <FormLabel>Tên khóa học</FormLabel>
                     <FormControl>
-                      <Input placeholder="Nhập username" {...field} />
+                      <Input placeholder="Nhập tên khóa học" {...field} />
                     </FormControl>
-                    <FormDescription>
-                      Tên trang web từ 2-30 kí tự
-                    </FormDescription>
                     <FormMessage className="text-[red]" />
                   </FormItem>
                 )}
               />
               <FormField
                 control={form.control}
-                name="description"
+                name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>description</FormLabel>
+                    <FormLabel>Giá khóa học</FormLabel>
                     <FormControl>
-                      <Textarea
-                        placeholder="Nhập mô tả thông tin trang web"
-                        className="resize-none"
-                        {...field}
-                      />
+                      <Select {...field} onValueChange={field.onChange} defaultValue={field.value}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Chọn giá khóa học" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#ececec]">
+                          <SelectItem value="free">Free</SelectItem>
+                          <SelectItem value="paid">Paid</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </FormControl>
-                    <FormDescription>
-                      Mô tả trang web từ 4-300 kí tự
-                    </FormDescription>
                     <FormMessage className="text-[red]" />
                   </FormItem>
                 )}
               />
-              <div>
-                {fields.map((field, index) => (
-                  <FormField
-                    control={form.control}
-                    key={field.id}
-                    name={`urls.${index}.value`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className={cn(index !== 0 && "sr-only")}>
-                          URLs
-                        </FormLabel>
-                        <FormDescription
-                          className={cn(index !== 0 && "sr-only")}
-                        >
-                          Add links to your website, blog, or social media
-                          profiles.
-                        </FormDescription>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage className="text-[red]" />
-                      </FormItem>
-                    )}
-                  />
-                ))}
-                <ButtonComponment
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="mt-2 w-[100px]"
-                  onClick={() => append({ value: "" })}
-                >
-                  Add URL
-                </ButtonComponment>
-              </div>
-              <div className="flex justify-between">
-                <div></div>
-                <div>
-                <ButtonComponment type="submit" className="w-[100px] ">
-                Cập nhập
-              </ButtonComponment>
-                </div>
-              </div>
+              {form.watch("price") === "paid" && (
+                <FormField
+                  control={form.control}
+                  name="priceAmount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Số tiền</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Nhập số tiền"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage className="text-[red]" />
+                    </FormItem>
+                  )}
+                />
+              )}
+              {chapterFields.map((chapter, chapterIndex) => (
+                <ChapterField
+                  key={chapter.id}
+                  chapter={chapter}
+                  chapterIndex={chapterIndex}
+                  control={form.control}
+                  removeChapter={removeChapter}
+                />
+              ))}
+              <ButtonComponent
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-2 w-[100px]"
+                onClick={() => appendChapter({ namechapter: "", videos: [] })}
+              >
+                Thêm chương
+              </ButtonComponent>
             </form>
           </Form>
         </div>
       }
-      contentFooter={<></>}
+      contentFooter={
+        <>
+          <div className="flex justify-end p-4">
+            <ButtonComponent
+              type="submit"
+              className="w-[150px]"
+              onClick={form.handleSubmit(onSubmit)}
+            >
+              Thêm khóa học
+            </ButtonComponent>
+          </div>
+        </>
+      }
     />
+  );
+}
+
+function ChapterField({
+  chapter,
+  chapterIndex,
+  control,
+  removeChapter,
+}: IProp) {
+  const {
+    fields: videoFields,
+    append: appendVideo,
+    remove: removeVideo,
+  } = useFieldArray({
+    name: `chapters.${chapterIndex}.videos`,
+    control,
+  });
+
+  return (
+    <div key={chapter.id} className="p-4 border rounded-md mb-4">
+      {" "}
+      {/* Add padding, border, and margin */}
+      <div className="flex justify-between items-center">
+        <div>Chương {chapterIndex + 1}</div>
+        <ButtonComponent
+          type="button"
+          variant="outline"
+          size="sm"
+          className="ml-2 w-[100px]"
+          onClick={() => removeChapter(chapterIndex)}
+        >
+          Xóa chương
+        </ButtonComponent>
+      </div>
+      <FormField
+        control={control}
+        name={`chapters.${chapterIndex}.namechapter`}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Tên chương</FormLabel>
+            <FormControl>
+              <Input placeholder="Nhập tên chương" {...field} />
+            </FormControl>
+            <FormMessage className="text-[red]" />
+          </FormItem>
+        )}
+      />
+      {videoFields.map((video, videoIndex) => (
+        <div key={video.id} className="pl-4 mt-4 border-l-2">
+          {" "}
+          {/* Add padding and left border */}
+          <div className="flex justify-between items-center">
+            <div>Video {videoIndex + 1}</div>
+            <ButtonComponent
+              type="button"
+              variant="outline"
+              size="sm"
+              className="ml-2 w-[100px]"
+              onClick={() => removeVideo(videoIndex)}
+            >
+              Xóa video
+            </ButtonComponent>
+          </div>
+          <FormField
+            control={control}
+            name={`chapters.${chapterIndex}.videos.${videoIndex}.childname`}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tên video </FormLabel>
+                <FormControl>
+                  <Input placeholder="Nhập tên video" {...field} />
+                </FormControl>
+                <FormMessage className="text-[red]" />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name={`chapters.${chapterIndex}.videos.${videoIndex}.video`}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>URL video</FormLabel>
+                <FormControl>
+                  <Input placeholder="Nhập URL video" {...field} />
+                </FormControl>
+                <FormMessage className="text-[red]" />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name={`chapters.${chapterIndex}.videos.${videoIndex}.time`}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Thời gian</FormLabel>
+                <FormControl>
+                  <Input placeholder="Nhập thời gian video" {...field} />
+                </FormControl>
+                <FormMessage className="text-[red]" />
+              </FormItem>
+            )}
+          />
+        </div>
+      ))}
+      <ButtonComponent
+        type="button"
+        variant="outline"
+        size="sm"
+        className="mt-2 w-[100px]"
+        onClick={() => appendVideo({ childname: "", video: "", time: "" })}
+      >
+        Thêm video
+      </ButtonComponent>
+    </div>
   );
 }

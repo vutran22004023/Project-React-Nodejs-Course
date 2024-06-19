@@ -16,7 +16,6 @@ interface DeleteProps {
     onClose: () => void;
   }
 export default function deleteCourse({id,isOpen, onClose}: DeleteProps) {
-    console.log(id)
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogTrigger asChild>
