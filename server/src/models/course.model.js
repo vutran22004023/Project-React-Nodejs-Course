@@ -3,9 +3,42 @@ import slug from 'mongoose-slug-updater';
 
 mongoose.plugin(slug);
 
+const videoSchema = new mongoose.Schema(
+  {
+    childname: {
+      type: String,
+      maxLength: 255,
+      required: true,
+    },
+    video: {
+      type: String,
+      required: true,
+    },
+    time: { type: String },
+    slug: { type: String, slug: 'childname', slugPaddingSize: 4, unique: true },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const chapterSchema = new mongoose.Schema(
+  {
+    namechapter: {
+      type: String,
+      maxLength: 255,
+      required: true,
+    },
+    videos: [videoSchema],
+  },
+  {
+    timestamps: true,
+  }
+);
+
 const courseSchema = new mongoose.Schema(
   {
-    title: {
+    name: {
       type: String,
       maxLength: 255,
       required: true,
@@ -21,19 +54,21 @@ const courseSchema = new mongoose.Schema(
     },
     video: {
       type: String,
-      maxLength: 255,
       default: null,
     },
+    chapters: [chapterSchema],
     price: {
-      type: Number,
-      default: null,
-    },
-    user_id: {
-      type: mongoose.Types.ObjectId,
-      ref: 'User',
+      type: String,
       required: true,
+      enum: ['free', 'paid'],
     },
-    slug: { type: String, slug: 'title', slugPaddingSize: 4, unique: true },
+    priceAmount: {
+      type: Number,
+      required: function () {
+        return this.price === 'paid';
+      },
+    },
+    slug: { type: String, slug: 'name', slugPaddingSize: 4, unique: true },
   },
   {
     timestamps: true,

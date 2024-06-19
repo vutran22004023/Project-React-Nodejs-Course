@@ -4,7 +4,7 @@ class CourseController {
   // Get all courses
   async index(req, res) {
     try {
-      const result = await Course.find({}, 'title image slug');
+      const result = await Course.find({}).select('name image slug').lean();
       res.status(200).json({ data: result });
     } catch (error) {
       res.status(500).json({ message: error.message });
@@ -15,53 +15,7 @@ class CourseController {
   async get(req, res) {
     try {
       const { slug } = req.params;
-      const result = await Course.aggregate([
-        { $match: { slug: slug } },
-        {
-          $lookup: {
-            from: 'lessons',
-            localField: '_id',
-            foreignField: 'course_id',
-            as: 'lessons',
-          },
-        },
-        {
-          $lookup: {
-            from: 'users',
-            localField: 'user_id',
-            foreignField: '_id',
-            as: 'user',
-          },
-        },
-        {
-          $project: {
-            title: 1,
-            description: 1,
-            price: 1,
-            imaga: 1,
-            video: 1,
-            lessons: {
-              title: 1,
-              slug: 1,
-            },
-            user: {
-              $arrayElemAt: [
-                {
-                  $map: {
-                    input: '$user',
-                    in: {
-                      name: '$$this.name',
-                      email: '$$this.email',
-                      avatar: '$$this.avatar',
-                    },
-                  },
-                },
-                0,
-              ],
-            },
-          },
-        },
-      ]);
+      const result = await Course.findOne({ slug: slug }).lean();
       if (!result) return res.status(404).json({ message: 'Course not found' });
       res.status(200).json({ data: result });
     } catch (error) {
@@ -72,11 +26,12 @@ class CourseController {
   // Add course
   async add(req, res) {
     try {
-      if (!req.body.title || !req.body.description || !req.body.user_id)
-        return res.status(400).json({ message: 'Missing required fields!' });
       await Course.create(req.body);
       res.status(201).json({ message: 'Add course successfully!' });
     } catch (error) {
+      if (error.message.includes('validation')) {
+        return res.status(400).json({ message: error.message });
+      }
       res.status(500).json({ message: error.message });
     }
   }
@@ -87,10 +42,10 @@ class CourseController {
       const { id } = req.params;
       const result = await Course.findById(id);
       if (!result) res.status(404).json({ message: 'Course not found' });
-      else if (result.user_id === req.body.user_id) {
+      else {
         await result.deleteOne();
         res.status(200).json({ message: 'Delete course successfully!' });
-      } else res.status(403).json({ message: 'Unauthorized to delete this course!' });
+      }
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
@@ -99,16 +54,17 @@ class CourseController {
   // Update course
   async update(req, res) {
     try {
-      if (!req.body.title || !req.body.description || !req.body.user_id)
-        return res.status(400).json({ message: 'Missing required fields!' });
       const { id } = req.params;
       const result = await Course.findById(id);
       if (!result) res.status(404).json({ message: 'Course not found' });
-      else if (result.user_id === req.body.user_id) {
+      else {
         await result.updateOne(req.body);
         res.status(200).json({ message: 'Update course successfully!' });
-      } else res.status(403).json({ message: 'Unauthorized to update this course!' });
+      }
     } catch (error) {
+      if (error.message.includes('validation')) {
+        return res.status(400).json({ message: error.message });
+      }
       res.status(500).json({ message: error.message });
     }
   }
