@@ -15,7 +15,9 @@ class CourseController {
   async get(req, res) {
     try {
       const { slug } = req.params;
-      const result = await Course.findOne({ slug: slug }).lean();
+      const result = await Course.findOne({ slug: slug })
+        .select('name description image video chapters.namechapter chapters.videos.childname chapters.videos.slug')
+        .lean();
       if (!result) return res.status(404).json({ message: 'Course not found' });
       res.status(200).json({ data: result });
     } catch (error) {
