@@ -4,9 +4,9 @@ import { AuthMiddleware } from '../middlewares/index.js';
 
 const router = express.Router();
 
-router.get('/all', CourseController.index);
-router.get('/detail/:slug', CourseController.get);
-router.post('/add', AuthMiddleware.authAdmin, CourseController.add);
+router.get('/all-courses', CourseController.getAllCourses);
+router.get('/detail-courses/:slug', CourseController.getDetailCourses);
+router.post('/create-courses', CourseController.createCourse);
 router.put('/update/:id', AuthMiddleware.authAdmin, CourseController.update);
 router.delete('/delete/:id', AuthMiddleware.authAdmin, CourseController.delete);
 

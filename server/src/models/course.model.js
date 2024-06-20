@@ -1,7 +1,5 @@
 import mongoose from 'mongoose';
-import slug from 'mongoose-slug-updater';
 
-mongoose.plugin(slug);
 
 const videoSchema = new mongoose.Schema(
   {
@@ -15,7 +13,6 @@ const videoSchema = new mongoose.Schema(
       required: true,
     },
     time: { type: String },
-    slug: { type: String, slug: 'childname', slugPaddingSize: 4, unique: true },
   },
   {
     timestamps: true,
@@ -68,11 +65,11 @@ const courseSchema = new mongoose.Schema(
         return this.price === 'paid';
       },
     },
-    slug: { type: String, slug: 'name', slugPaddingSize: 4, unique: true },
   },
   {
     timestamps: true,
   }
 );
 
-export default mongoose.model('Course', courseSchema);
+const Course = mongoose.model('Course', courseSchema);
+export default Course

@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 
 class CourseController {
   // Get all courses
-  async index(req, res) {
+  async getAllCourses(req, res) {
     try {
       const { limit, page, sort, filter } = req.query;
       const limitValue = parseInt(limit) || 30;
@@ -12,48 +12,54 @@ class CourseController {
       const sortArray = sort ? sort.split(':') : null;
       const filterArray = filter ? filter.split(':') : null;
       const result = await CourseService.getAllCourses(limitValue, pageValue, sortArray, filterArray);
-      res.status(200).json(result);
+      return res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
   }
 
   // Get course detail
-  async get(req, res) {
+  async getDetailCourses(req, res) {
     try {
       const { slug } = req.params;
-      const result = await Course.findOne({ slug: slug })
-        .select('name description image video chapters.namechapter chapters.videos.childname chapters.videos.slug')
-        .lean();
-      if (!result)
-        return res.status(404).json({
-          status: 404,
-          message: 'Không tìm thấy khóa học!',
+      if (!slug)
+        return res.status(200).json({
+          status: 'ERR',
+          message: 'Chưa điền đầy đủ thông tin ',
         });
-      res.status(200).json({
-        status: 200,
-        message: `Thông tin khóa học id:  ${result._id}`,
-        data: result,
-      });
+      const result = await CourseService.getDetaiCourse(slug)
+      return res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
   }
 
   // Add course
-  async add(req, res) {
+  async createCourse(req, res) {
     try {
-      const result = await Course.create(req.body);
-      res.status(201).json({
-        status: 201,
-        message: 'Thêm khóa học thành công!',
-        data: result,
-      });
+      const { name, description, image, video, chapters, price, priceAmount } = req.body;
+      
+      // Check for missing fields
+      if (!name || !description || !image || !video || !chapters || !price) {
+        return res.status(200).json({
+          status: 'ERR',
+          message: 'Chưa điền đầy đủ thông tin'
+        });
+      }
+      
+      // Call the service method to create the course
+      const result = await CourseService.createCourse(req.body);
+      
+      // Send the result back to the client
+      return res.status(200).json(result);
     } catch (error) {
+      // Handle validation errors specifically
       if (error.message.includes('validation')) {
         return res.status(400).json({ message: error.message });
       }
-      res.status(500).json({ message: error.message });
+      
+      // Handle general errors
+      return res.status(500).json({ message: error.message });
     }
   }
 

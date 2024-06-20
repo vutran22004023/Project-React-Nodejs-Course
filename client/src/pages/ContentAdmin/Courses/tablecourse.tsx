@@ -40,6 +40,8 @@ import {
 } from "@/components/ui/table"
 import UpdateCourse from "./updateCourse"
 import DeleteCourse from './deleteCourse'
+import { CourseService } from "@/services"
+import {useQuery} from '@tanstack/react-query'
 
 const data: Payment[] = [
   {
@@ -200,6 +202,13 @@ export function DataTableDemo() {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   )
+
+  const getAllCourses = async() => {
+     const res = await CourseService.GetAllCourses()
+     return res
+  } 
+  const {data: dataAllCourses} = useQuery({ queryKey: ['dataAllCourses'], queryFn: getAllCourses })
+  console.log( dataAllCourses )
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})

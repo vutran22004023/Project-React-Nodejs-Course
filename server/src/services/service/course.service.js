@@ -1,4 +1,4 @@
-import Course from '../../models/course.model.js';
+import {CourseModel} from '../../models/index.js';
 
 class CourseService {
   async getAllCourses(limit, page, sort, filter) {
@@ -15,7 +15,7 @@ class CourseService {
       options.sort = { [sort[1]]: sort[0] };
     }
 
-    const allCourses = await Course.find(query, null, options).select('-chapters').lean();
+    const allCourses = await CourseModel.find(query, null, options).lean();
 
     return {
       status: 200,
@@ -25,6 +25,54 @@ class CourseService {
       pageCurrent: Number(page),
       totalPage: Math.ceil(totalCourses / limit),
     };
+  }
+
+
+  async getDetaiCourse(slug) {
+    try {
+      const checkCourse = await CourseModel.findOne({slug: slug})
+      if(!checkCourse) {
+        return {
+          status: 'ERR',
+          message: 'Khóa học không tồn tại'
+        }
+      }
+      return {
+        status: 200,
+        data: checkCourse,
+        message: 'Show dữ liệu thành công'
+      }
+    }catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  }
+
+  async createCourse(data) {
+    try {
+      const { name, description, image, video, chapters, price, priceAmount } = data;
+      
+      // Check if the course already exists
+      const checkCourse = await CourseModel.findOne({ name });
+      if (checkCourse) {
+        return {
+          status: 200,
+          message: 'Khóa học đã tồn tại'
+        };
+      }
+      
+      // Create the new course
+      const createCourse = await CourseModel.create(data);
+      if (createCourse) {
+        return {
+          status: 200,
+          data: createCourse,
+          message: 'Đã tạo khóa học thành công'
+        };
+      }
+    } catch (error) {
+      // Throw the error to be handled by the controller
+      throw new Error(error.message);
+    }
   }
 }
 
