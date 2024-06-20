@@ -21,6 +21,14 @@ app.use(cookieParser());
 
 app.use('/api', routes);
 
+// Handle 404
+app.use((req, res) => {
+  res.status(404).json({
+    status: 404,
+    message: 'Đường dẫn không tồn tại!',
+  });
+});
+
 const port = process.env.PORT || 3002;
 const url = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.qm0ui7p.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 // const url = 'mongodb://localhost:27017/learning_website';
