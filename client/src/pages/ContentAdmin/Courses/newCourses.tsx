@@ -1,10 +1,10 @@
-import React from "react";
+import React, {useCallback, useState} from "react";
 import ModalComponent from "@/components/ModalComponent/Modal";
 import { Button } from "@/components/ui/button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
-
+import { useDropzone } from "react-dropzone";
 import { cn } from "@/lib/utils";
 import ButtonComponent from "@/components/ButtonComponent/Button";
 import {
@@ -52,6 +52,8 @@ const courseFormSchema = z.object({
     .max(30, "Tên khóa học phải tối đa 30 kí tự"),
   price: z.enum(["free", "paid"]),
   priceAmount: z.string().optional(),
+  video: z.string().url("Vui lòng nhập URL hợp lệ").optional(),
+  image: z.instanceof(File).optional(),
   chapters: z.array(chapterSchema),
 });
 
@@ -71,6 +73,7 @@ const defaultValues: Partial<CourseFormValues> = {
 };
 
 export default function NewCourses() {
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const form = useForm<CourseFormValues>({
     resolver: zodResolver(courseFormSchema),
     defaultValues,
@@ -84,6 +87,20 @@ export default function NewCourses() {
   } = useFieldArray({
     name: "chapters",
     control: form.control,
+  });
+
+  const onDrop = useCallback(
+    (acceptedFiles: any) => {
+      const file = acceptedFiles[0];
+      form.setValue("image", file);
+      setImagePreview(URL.createObjectURL(file));
+    },
+    [form]
+  );
+
+  const { getRootProps, getInputProps } = useDropzone({
+    onDrop,
+    accept: { 'image/*': [] },
   });
 
   const onSubmit =(data: CourseFormValues) => {
@@ -169,6 +186,45 @@ export default function NewCourses() {
                   )}
                 />
               )}
+              <FormField
+                control={form.control}
+                name="video"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Đường dẫn video giới thiệu</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Nhập URL video giới thiệu"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage className="text-[red]" />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="image"
+                render={() => (
+                  <FormItem>
+                    <FormLabel>Hình ảnh khóa học</FormLabel>
+                    <div {...getRootProps({ className: "dropzone cursor-pointer w-[100px]" })}>
+                      <input {...getInputProps()} />
+                      <p className="p-2 bg-black text-[#fff] w-[100px] cursor-pointer rounded-md">Thêm ảnh</p>
+                    </div>
+                    {imagePreview && (
+                      <div className="mt-4">
+                        <img
+                          src={imagePreview}
+                          alt="Image Preview"
+                          className="w-[200px] h-[200px] object-cover rounded-lg"
+                        />
+                      </div>
+                    )}
+                    <FormMessage className="text-[red]" />
+                  </FormItem>
+                )}
+              />
               {chapterFields.map((chapter, chapterIndex) => (
                 <ChapterField
                   key={chapter.id}
