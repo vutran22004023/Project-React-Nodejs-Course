@@ -40,7 +40,7 @@ class CourseController {
       const { name, description, image, video, chapters, price, priceAmount } = req.body;
       
       // Check for missing fields
-      if (!name || !description || !image || !video || !chapters || !price) {
+      if (!name   || !video || !chapters || !price) {
         return res.status(200).json({
           status: 'ERR',
           message: 'Chưa điền đầy đủ thông tin'

@@ -2,7 +2,7 @@ import {CourseModel} from '../../models/index.js';
 
 class CourseService {
   async getAllCourses(limit, page, sort, filter) {
-    const totalCourses = await Course.countDocuments();
+    const totalCourses = await CourseModel.countDocuments();
     const query = {};
     const options = {
       limit: limit,
@@ -15,7 +15,7 @@ class CourseService {
       options.sort = { [sort[1]]: sort[0] };
     }
 
-    const allCourses = await CourseModel.find(query, null, options).lean();
+    const allCourses = await CourseModel.find(query, null, options)
 
     return {
       status: 200,

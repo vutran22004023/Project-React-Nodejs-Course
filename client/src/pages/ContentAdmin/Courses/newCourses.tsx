@@ -1,8 +1,8 @@
-import React, {useCallback, useState} from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import ModalComponent from "@/components/ModalComponent/Modal";
 import { Button } from "@/components/ui/button";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { useDropzone } from "react-dropzone";
 import { cn } from "@/lib/utils";
@@ -26,6 +26,9 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
+import { CourseService } from '@/services/index';
+import { useMutationHook } from '@/hooks/index';
+import {success, error} from '@/components/MessageComponents/Message'
 
 interface IProp {
   chapter: any;
@@ -33,16 +36,27 @@ interface IProp {
   control: any;
   removeChapter: any;
 }
+
+// Function to generate slug
+const generateSlug = (str: string) => {
+  return str
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+};
+
 // Schema validation using Zod
 const videoSchema = z.object({
   childname: z.string().min(1, "Vui lòng nhập tên video"),
   video: z.string().url("Vui lòng nhập URL hợp lệ"),
   time: z.string().optional(),
+  slug: z.string().optional(),
 });
 
 const chapterSchema = z.object({
   namechapter: z.string().min(1, "Vui lòng nhập tên chương"),
   videos: z.array(videoSchema),
+  slug: z.string().optional(),
 });
 
 const courseFormSchema = z.object({
@@ -55,25 +69,27 @@ const courseFormSchema = z.object({
   video: z.string().url("Vui lòng nhập URL hợp lệ").optional(),
   image: z.instanceof(File).optional(),
   chapters: z.array(chapterSchema),
+  slug: z.string().optional(),
 });
 
 type CourseFormValues = z.infer<typeof courseFormSchema>;
 
 // Default values (optional)
 const defaultValues: Partial<CourseFormValues> = {
-  chapters: [
-    {
-      namechapter: "Chapter 1",
-      videos: [
-        { childname: "Video 1.1", video: "http://video-url-1", time: "10:00" },
-        { childname: "Video 1.2", video: "http://video-url-2", time: "15:00" },
-      ],
-    },
-  ],
+  // chapters: [
+  //   {
+  //     namechapter: "Chapter 1",
+  //     videos: [
+  //       { childname: "Video 1.1", video: "http://video-url-1", time: "10:00" },
+  //       { childname: "Video 1.2", video: "http://video-url-2", time: "15:00" },
+  //     ],
+  //   },
+  // ],
 };
 
 export default function NewCourses() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const form = useForm<CourseFormValues>({
     resolver: zodResolver(courseFormSchema),
     defaultValues,
@@ -103,7 +119,35 @@ export default function NewCourses() {
     accept: { 'image/*': [] },
   });
 
-  const onSubmit =(data: CourseFormValues) => {
+  const mutateCreate = useMutationHook(async (data) => {
+    const res = await CourseService.CreateCourses(data);
+    return res;
+  });
+  
+  const { data: dataCreate } = mutateCreate;
+
+  useEffect(() => {
+    if(dataCreate?.status === 200) {
+      success(`${dataCreate?.message}`)
+      setImagePreview(null); 
+      setIsModalOpen(false);
+    }else if(dataCreate?.status === 'ERR') {
+      error(`${dataCreate?.message}`)
+    }
+  }, [dataCreate])
+
+  const onSubmit = (data: CourseFormValues) => {
+    // Generate slugs before submitting
+    data.slug = generateSlug(data.name);
+    data.chapters = data.chapters.map(chapter => ({
+      ...chapter,
+      slug: generateSlug(chapter.namechapter),
+      videos: chapter.videos.map(video => ({
+        ...video,
+        slug: generateSlug(video.childname),
+      })),
+    }));
+
     toast({
       title: "You submitted the following values:",
       description: (
@@ -112,11 +156,13 @@ export default function NewCourses() {
         </pre>
       ),
     });
-    console.log(data);
-  }
+    mutateCreate.mutate(data);
+  };
 
   return (
     <ModalComponent
+      isOpen={isModalOpen}
+      setIsOpen={setIsModalOpen}
       triggerContent={
         <Button
           className="bg-[black] p-5 text-[#fff] hover:bg-[#6c6a6a]"
@@ -125,13 +171,13 @@ export default function NewCourses() {
           Thêm khóa học
         </Button>
       }
-      contentHeader={<>
-      <div>Thêm khóa học mới</div>
-      </>}
+      contentHeader={
+        <>
+          <div>Thêm khóa học mới</div>
+        </>
+      }
       contentBody={
         <div className="p-2 max-h-[500px] overflow-y-auto">
-          {" "}
-          {/* Add max height and scroll */}
           <Form {...form}>
             <form className="space-y-4">
               <FormField
@@ -176,10 +222,7 @@ export default function NewCourses() {
                     <FormItem>
                       <FormLabel>Số tiền</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="Nhập số tiền"
-                          {...field}
-                        />
+                        <Input placeholder="Nhập số tiền" {...field} />
                       </FormControl>
                       <FormMessage className="text-[red]" />
                     </FormItem>
@@ -193,10 +236,7 @@ export default function NewCourses() {
                   <FormItem>
                     <FormLabel>Đường dẫn video giới thiệu</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Nhập URL video giới thiệu"
-                        {...field}
-                      />
+                      <Input placeholder="Nhập URL video giới thiệu" {...field} />
                     </FormControl>
                     <FormMessage className="text-[red]" />
                   </FormItem>
@@ -281,8 +321,6 @@ function ChapterField({
 
   return (
     <div key={chapter.id} className="p-4 border rounded-md mb-4">
-      {" "}
-      {/* Add padding, border, and margin */}
       <div className="flex justify-between items-center">
         <div>Chương {chapterIndex + 1}</div>
         <ButtonComponent
@@ -310,8 +348,6 @@ function ChapterField({
       />
       {videoFields.map((video, videoIndex) => (
         <div key={video.id} className="pl-4 mt-4 border-l-2">
-          {" "}
-          {/* Add padding and left border */}
           <div className="flex justify-between items-center">
             <div>Video {videoIndex + 1}</div>
             <ButtonComponent
@@ -329,7 +365,7 @@ function ChapterField({
             name={`chapters.${chapterIndex}.videos.${videoIndex}.childname`}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Tên video </FormLabel>
+                <FormLabel>Tên video</FormLabel>
                 <FormControl>
                   <Input placeholder="Nhập tên video" {...field} />
                 </FormControl>

@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 
-
 const videoSchema = new mongoose.Schema(
   {
     childname: {
@@ -8,11 +7,16 @@ const videoSchema = new mongoose.Schema(
       maxLength: 255,
       required: true,
     },
+    slug: {
+      type: String,
+    },
     video: {
       type: String,
       required: true,
     },
-    time: { type: String },
+    time: {
+      type: String,
+    },
   },
   {
     timestamps: true,
@@ -39,14 +43,16 @@ const courseSchema = new mongoose.Schema(
       type: String,
       maxLength: 255,
       required: true,
+      unique: true, // Ensuring course names are unique
+    },
+    slug: {
+      type: String,
     },
     description: {
       type: String,
-      required: true,
     },
     image: {
       type: String,
-      maxLength: 255,
       default: null,
     },
     video: {
@@ -72,4 +78,4 @@ const courseSchema = new mongoose.Schema(
 );
 
 const Course = mongoose.model('Course', courseSchema);
-export default Course
+export default Course;
