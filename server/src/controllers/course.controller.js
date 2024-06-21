@@ -22,9 +22,7 @@ class CourseController {
   async get(req, res) {
     try {
       const { slug } = req.params;
-      const result = await Course.findOne({ slug: slug })
-        // .select('name description image video chapters.namechapter chapters.videos.childname chapters.videos.slug')
-        .lean();
+      const result = await Course.findOne({ slug: slug }).lean();
       if (!result)
         return res.status(404).json({
           status: 404,
@@ -90,21 +88,10 @@ class CourseController {
           message: 'ID không hợp lệ!',
         });
       }
-      const { chapters, ...course } = req.body;
-      // const result = await Course.findOneAndReplace({ _id: id }, req.body, { returnDocument: 'after' }).lean();
-      const result = await Course.findOneAndUpdate({ _id: id }, { $set: { chapters: chapters } }, { new: true }).lean();
 
-      if (!result)
-        res.status(404).json({
-          status: 404,
-          message: 'Không tìm thấy khóa học!',
-        });
-      else
-        res.status(200).json({
-          status: 200,
-          message: `Đã cập nhật khóa học id: ${result._id}`,
-          data: result,
-        });
+      const result = await CourseService.updateCourse(id, req.body);
+
+      res.status(200).json(result);
     } catch (error) {
       if (error.message.includes('validation')) {
         return res.status(400).json({ message: error.message });
