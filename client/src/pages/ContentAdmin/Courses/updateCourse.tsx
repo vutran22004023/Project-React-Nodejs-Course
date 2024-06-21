@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +12,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import ButtonComponent from '@/components/ButtonComponent/Button'
+import ButtonComponent from '@/components/ButtonComponent/Button';
 import { z } from "zod";
 import {
   Form,
@@ -34,11 +34,13 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useDropzone } from "react-dropzone";
 import { toast } from "@/components/ui/use-toast";
+
 interface UpdateProps {
-  id: string;
+  data: any;
   isOpen: boolean;
   onClose: () => void;
 }
+
 interface IProp {
   chapter: any;
   chapterIndex: any;
@@ -72,26 +74,30 @@ const courseFormSchema = z.object({
 
 type CourseFormValues = z.infer<typeof courseFormSchema>;
 
-// Default values (optional)
-const defaultValues: Partial<CourseFormValues> = {
-  chapters: [
-    {
-      namechapter: "Chapter 1",
-      videos: [
-        { childname: "Video 1.1", video: "http://video-url-1", time: "10:00" },
-        { childname: "Video 1.2", video: "http://video-url-2", time: "15:00" },
-      ],
-    },
-  ],
-};
-
-const UpdateCourse: React.FC<UpdateProps> = ({ id, isOpen, onClose }) => {
+const UpdateCourse: React.FC<UpdateProps> = ({ data, isOpen, onClose }) => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+
   const form = useForm<CourseFormValues>({
     resolver: zodResolver(courseFormSchema),
-    defaultValues,
+    defaultValues: {
+      ...data,
+      image: data.image ? data.image : null,
+      chapters: data.chapters ? data.chapters : [],
+    },
     mode: "onChange",
   });
+
+  useEffect(() => {
+    if (data.image) {
+      setImagePreview(data.image);
+    }
+    // Reset form values whenever `data` changes
+    form.reset({
+      ...data,
+      image: data.image ? data.image : null,
+      chapters: data.chapters ? data.chapters : [],
+    });
+  }, [data, form]);
 
   const {
     fields: chapterFields,
@@ -116,31 +122,28 @@ const UpdateCourse: React.FC<UpdateProps> = ({ id, isOpen, onClose }) => {
     accept: { 'image/*': [] },
   });
 
-  const onSubmit =(data: CourseFormValues) => {
+  const onSubmit = (formData: CourseFormValues) => {
     toast({
       title: "You submitted the following values:",
       description: (
         <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
+          <code className="text-white">{JSON.stringify(formData, null, 2)}</code>
         </pre>
       ),
     });
-    console.log(data);
+    console.log(formData);
   }
+
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetTrigger asChild>
-
-      </SheetTrigger>
+      <SheetTrigger asChild></SheetTrigger>
       <SheetContent className="bg-[#fff] pr-[20px] w-[600px]">
         <SheetHeader className="mb-3">
           <SheetTitle>
-              <div>Edit profile</div>
+            <div>Edit profile</div>
           </SheetTitle>
         </SheetHeader>
-        <div className=" max-h-[580px] overflow-y-auto ">
-          {" "}
-          {/* Add max height and scroll */}
+        <div className="max-h-[580px] overflow-y-auto">
           <Form {...form}>
             <form className="space-y-4">
               <FormField
@@ -185,10 +188,7 @@ const UpdateCourse: React.FC<UpdateProps> = ({ id, isOpen, onClose }) => {
                     <FormItem>
                       <FormLabel>Số tiền</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="Nhập số tiền"
-                          {...field}
-                        />
+                        <Input placeholder="Nhập số tiền" {...field} />
                       </FormControl>
                       <FormMessage className="text-[red]" />
                     </FormItem>
@@ -202,10 +202,7 @@ const UpdateCourse: React.FC<UpdateProps> = ({ id, isOpen, onClose }) => {
                   <FormItem>
                     <FormLabel>Đường dẫn video giới thiệu</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Nhập URL video giới thiệu"
-                        {...field}
-                      />
+                      <Input placeholder="Nhập URL video giới thiệu" {...field} />
                     </FormControl>
                     <FormMessage className="text-[red]" />
                   </FormItem>
@@ -281,9 +278,7 @@ function ChapterField({
   });
 
   return (
-    <div key={chapter.id} className="p-4 border rounded-md mb-4">
-      {" "}
-      {/* Add padding, border, and margin */}
+    <div className="pl-4 mt-4 border-l-2">
       <div className="flex justify-between items-center">
         <div>Chương {chapterIndex + 1}</div>
         <ButtonComponent
@@ -311,8 +306,6 @@ function ChapterField({
       />
       {videoFields.map((video, videoIndex) => (
         <div key={video.id} className="pl-4 mt-4 border-l-2">
-          {" "}
-          {/* Add padding and left border */}
           <div className="flex justify-between items-center">
             <div>Video {videoIndex + 1}</div>
             <ButtonComponent

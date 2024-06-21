@@ -40,10 +40,7 @@ import {
 } from "@/components/ui/table"
 import UpdateCourse from "./updateCourse"
 import DeleteCourse from './deleteCourse'
-import { CourseService } from "@/services"
-import {useQuery} from '@tanstack/react-query'
-
-
+import {IfetchTable} from '@/types/index'
 export type Payment = {
   id: string,
   name: number,
@@ -52,6 +49,8 @@ export type Payment = {
   createdAt: string,
   updatedAt: string
 }
+
+
 
 export const columns: ColumnDef<Payment>[] = [
   {
@@ -134,10 +133,10 @@ export const columns: ColumnDef<Payment>[] = [
       const payment = row.original
       const [isOpenUpdate, setIsOpenUpdate] = React.useState(false);
       const [isOpenDelete, setIsOpenDelete] = React.useState(false)
-      const [idPayment, setIdPayment] = React.useState('');
-
-      const handleOpenUpdate = (id: string) => {
-        setIdPayment(id);
+      const [dataDetailCourses, setDataDeatilCourses] = React.useState('');
+      
+      const handleOpenUpdate = (payment: any) => {
+        setDataDeatilCourses(payment);
         setIsOpenUpdate(true);
       };
 
@@ -146,7 +145,7 @@ export const columns: ColumnDef<Payment>[] = [
       };
 
       const handleOpenDelete = (id: string) => {
-        setIdPayment(id);
+        setDataDeatilCourses(id);
         setIsOpenDelete(true);
       };
 
@@ -164,7 +163,7 @@ export const columns: ColumnDef<Payment>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="bg-[#e9e8e8] rounded-xl p-3">
             <DropdownMenuItem
-              onClick={() => handleOpenUpdate(payment.id)}
+              onClick={() => handleOpenUpdate(payment)}
               className="p-3 cursor-pointer hover:bg-[#848484] rounded-xl mb-1"
             >
               Chỉnh sửa
@@ -173,30 +172,24 @@ export const columns: ColumnDef<Payment>[] = [
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => handleOpenDelete(payment.id)} className="p-3 cursor-pointer hover:bg-[#848484] rounded-xl">Xóa</DropdownMenuItem>
           </DropdownMenuContent>
-          <UpdateCourse  id={idPayment} isOpen={isOpenUpdate} onClose={handleCloseUpdate} />
-          <DeleteCourse id={idPayment} isOpen={isOpenDelete} onClose={handleCloseDelete} />
+          <UpdateCourse  data={dataDetailCourses} isOpen={isOpenUpdate} onClose={handleCloseUpdate}/>
+          <DeleteCourse id={dataDetailCourses} isOpen={isOpenDelete} onClose={handleCloseDelete} />
         </DropdownMenu>
       )
     },
   },
 ]
 
-export function DataTableDemo() {
+export function DataTableDemo({ fetchTableData }: IfetchTable) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   )
 
-  const getAllCourses = async() => {
-     const res = await CourseService.GetAllCourses()
-     return res
-  } 
-  const {data: dataAllCourses} = useQuery({ queryKey: ['dataAllCourses'], queryFn: getAllCourses })
-
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
-  const data: Payment[] = dataAllCourses?.data || [];
+  const data: Payment[] = fetchTableData?.data?.data || [];
 
   const table = useReactTable({
     data,
@@ -277,7 +270,7 @@ export function DataTableDemo() {
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {!fetchTableData.isLoading && table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
@@ -299,7 +292,7 @@ export function DataTableDemo() {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  ...Loading
                 </TableCell>
               </TableRow>
             )}

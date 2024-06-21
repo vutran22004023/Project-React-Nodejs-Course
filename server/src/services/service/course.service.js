@@ -64,7 +64,7 @@ class CourseService {
       const createCourse = await CourseModel.create(data);
       if (createCourse) {
         return {
-          status: "ERR",
+          status: 200,
           data: createCourse,
           message: 'Đã tạo khóa học thành công'
         };

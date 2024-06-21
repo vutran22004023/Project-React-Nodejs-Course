@@ -63,3 +63,13 @@ export interface Course {
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+
+export interface IfetchTable {
+  fetchTableData: {
+    data: any;
+    error: any;
+    isLoading: any;
+    refetch: () => Promise<void>;
+  };
+}

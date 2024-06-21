@@ -29,13 +29,14 @@ import { toast } from "@/components/ui/use-toast";
 import { CourseService } from '@/services/index';
 import { useMutationHook } from '@/hooks/index';
 import {success, error} from '@/components/MessageComponents/Message'
-
+import {IfetchTable} from '@/types/index'
 interface IProp {
   chapter: any;
   chapterIndex: any;
   control: any;
   removeChapter: any;
 }
+
 
 // Function to generate slug
 const generateSlug = (str: string) => {
@@ -87,7 +88,7 @@ const defaultValues: Partial<CourseFormValues> = {
   // ],
 };
 
-export default function NewCourses() {
+export default function NewCourses({ fetchTableData }: IfetchTable) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const form = useForm<CourseFormValues>({
@@ -125,12 +126,13 @@ export default function NewCourses() {
   });
   
   const { data: dataCreate } = mutateCreate;
-
   useEffect(() => {
     if(dataCreate?.status === 200) {
       success(`${dataCreate?.message}`)
       setImagePreview(null); 
       setIsModalOpen(false);
+      fetchTableData.refetch();
+      form.reset();
     }else if(dataCreate?.status === 'ERR') {
       error(`${dataCreate?.message}`)
     }
