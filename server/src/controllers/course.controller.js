@@ -23,7 +23,7 @@ class CourseController {
     try {
       const { slug } = req.params;
       const result = await Course.findOne({ slug: slug })
-        .select('name description image video chapters.namechapter chapters.videos.childname chapters.videos.slug')
+        // .select('name description image video chapters.namechapter chapters.videos.childname chapters.videos.slug')
         .lean();
       if (!result)
         return res.status(404).json({
@@ -90,12 +90,9 @@ class CourseController {
           message: 'ID không hợp lệ!',
         });
       }
-
-      const result = await Course.findOneAndUpdate(
-        { _id: id },
-        { $set: { chapters: req.body.chapters } },
-        { new: true, runValidators: true }
-      ).lean();
+      const { chapters, ...course } = req.body;
+      // const result = await Course.findOneAndReplace({ _id: id }, req.body, { returnDocument: 'after' }).lean();
+      const result = await Course.findOneAndUpdate({ _id: id }, { $set: { chapters: chapters } }, { new: true }).lean();
 
       if (!result)
         res.status(404).json({
