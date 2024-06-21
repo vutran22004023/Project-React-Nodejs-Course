@@ -26,13 +26,26 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
-
+import { CourseService } from '@/services/index';
+import { useMutationHook } from '@/hooks/index';
+import {success, error} from '@/components/MessageComponents/Message'
+import {IfetchTable} from '@/types/index'
 interface IProp {
   chapter: any;
   chapterIndex: any;
   control: any;
   removeChapter: any;
 }
+
+
+// Function to generate slug
+const generateSlug = (str: string) => {
+  return str
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+};
+
 // Schema validation using Zod
 const videoSchema = z.object({
   childname: z.string().min(1, "Vui lòng nhập tên video"),
@@ -70,7 +83,9 @@ const defaultValues: Partial<CourseFormValues> = {
   ],
 };
 
-export default function NewCourses() {
+export default function NewCourses({ fetchTableData }: IfetchTable) {
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const form = useForm<CourseFormValues>({
     resolver: zodResolver(courseFormSchema),
     defaultValues,
@@ -86,7 +101,50 @@ export default function NewCourses() {
     control: form.control,
   });
 
-  const onSubmit =(data: CourseFormValues) => {
+  const onDrop = useCallback(
+    (acceptedFiles: any) => {
+      const file = acceptedFiles[0];
+      form.setValue("image", file);
+      setImagePreview(URL.createObjectURL(file));
+    },
+    [form]
+  );
+
+  const { getRootProps, getInputProps } = useDropzone({
+    onDrop,
+    accept: { 'image/*': [] },
+  });
+
+  const mutateCreate = useMutationHook(async (data) => {
+    const res = await CourseService.CreateCourses(data);
+    return res;
+  });
+  
+  const { data: dataCreate } = mutateCreate;
+  useEffect(() => {
+    if(dataCreate?.status === 200) {
+      success(`${dataCreate?.message}`)
+      setImagePreview(null); 
+      setIsModalOpen(false);
+      fetchTableData.refetch();
+      form.reset();
+    }else if(dataCreate?.status === 'ERR') {
+      error(`${dataCreate?.message}`)
+    }
+  }, [dataCreate])
+
+  const onSubmit = (data: CourseFormValues) => {
+    // Generate slugs before submitting
+    data.slug = generateSlug(data.name);
+    data.chapters = data.chapters.map(chapter => ({
+      ...chapter,
+      slug: generateSlug(chapter.namechapter),
+      videos: chapter.videos.map(video => ({
+        ...video,
+        slug: generateSlug(video.childname),
+      })),
+    }));
+
     toast({
       title: "You submitted the following values:",
       description: (

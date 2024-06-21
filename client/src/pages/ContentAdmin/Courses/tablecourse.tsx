@@ -40,46 +40,15 @@ import {
 } from "@/components/ui/table"
 import UpdateCourse from "./updateCourse"
 import DeleteCourse from './deleteCourse'
-
-const data: Payment[] = [
-  {
-    id: "m5gr84i9",
-    amount: 316,
-    status: "success",
-    email: "ken99@yahoo.com",
-  },
-  {
-    id: "3u1reuv4",
-    amount: 242,
-    status: "success",
-    email: "Abe45@gmail.com",
-  },
-  {
-    id: "derv1ws0",
-    amount: 837,
-    status: "processing",
-    email: "Monserrat44@gmail.com",
-  },
-  {
-    id: "5kma53ae",
-    amount: 874,
-    status: "success",
-    email: "Silas22@gmail.com",
-  },
-  {
-    id: "bhqecj4p",
-    amount: 721,
-    status: "failed",
-    email: "carmella@hotmail.com",
-  },
-]
-
+import {IfetchTable} from '@/types/index'
 export type Payment = {
   id: string
   amount: number
   status: "pending" | "processing" | "success" | "failed"
   email: string
 }
+
+
 
 export const columns: ColumnDef<Payment>[] = [
   {
@@ -148,10 +117,10 @@ export const columns: ColumnDef<Payment>[] = [
       const payment = row.original
       const [isOpenUpdate, setIsOpenUpdate] = React.useState(false);
       const [isOpenDelete, setIsOpenDelete] = React.useState(false)
-      const [idPayment, setIdPayment] = React.useState('');
-
-      const handleOpenUpdate = (id: string) => {
-        setIdPayment(id);
+      const [dataDetailCourses, setDataDeatilCourses] = React.useState('');
+      
+      const handleOpenUpdate = (payment: any) => {
+        setDataDeatilCourses(payment);
         setIsOpenUpdate(true);
       };
 
@@ -160,7 +129,7 @@ export const columns: ColumnDef<Payment>[] = [
       };
 
       const handleOpenDelete = (id: string) => {
-        setIdPayment(id);
+        setDataDeatilCourses(id);
         setIsOpenDelete(true);
       };
 
@@ -178,7 +147,7 @@ export const columns: ColumnDef<Payment>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="bg-[#e9e8e8] rounded-xl p-3">
             <DropdownMenuItem
-              onClick={() => handleOpenUpdate(payment.id)}
+              onClick={() => handleOpenUpdate(payment)}
               className="p-3 cursor-pointer hover:bg-[#848484] rounded-xl mb-1"
             >
               Chỉnh sửa
@@ -187,22 +156,24 @@ export const columns: ColumnDef<Payment>[] = [
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => handleOpenDelete(payment.id)} className="p-3 cursor-pointer hover:bg-[#848484] rounded-xl">Xóa</DropdownMenuItem>
           </DropdownMenuContent>
-          <UpdateCourse  id={idPayment} isOpen={isOpenUpdate} onClose={handleCloseUpdate} />
-          <DeleteCourse id={idPayment} isOpen={isOpenDelete} onClose={handleCloseDelete} />
+          <UpdateCourse  data={dataDetailCourses} isOpen={isOpenUpdate} onClose={handleCloseUpdate}/>
+          <DeleteCourse id={dataDetailCourses} isOpen={isOpenDelete} onClose={handleCloseDelete} />
         </DropdownMenu>
       )
     },
   },
 ]
 
-export function DataTableDemo() {
+export function DataTableDemo({ fetchTableData }: IfetchTable) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   )
+
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
+  const data: Payment[] = fetchTableData?.data?.data || [];
 
   const table = useReactTable({
     data,
@@ -283,7 +254,7 @@ export function DataTableDemo() {
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {!fetchTableData.isLoading && table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
@@ -305,7 +276,7 @@ export function DataTableDemo() {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  ...Loading
                 </TableCell>
               </TableRow>
             )}

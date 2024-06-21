@@ -1,9 +1,9 @@
-import Course from '../../models/course.model.js';
+import { CourseModel } from '../../models/index.js';
 import mongoose from 'mongoose';
 
 class CourseService {
   async getAllCourses(limit, page, sort, filter) {
-    const totalCourses = await Course.countDocuments();
+    const totalCourses = await CourseModel.countDocuments();
     const query = {};
     const options = {
       limit: limit,
@@ -16,7 +16,7 @@ class CourseService {
       options.sort = { [sort[1]]: sort[0] };
     }
 
-    const allCourses = await Course.find(query, null, options).select('-chapters').lean();
+    const allCourses = await CourseModel.find(query, null, options).select('-chapters').lean();
 
     return {
       status: 200,
@@ -28,12 +28,55 @@ class CourseService {
     };
   }
 
+  async getDetaiCourse(slug) {
+    const checkCourse = await CourseModel.findOne({ slug: slug });
+    if (!checkCourse) {
+      return {
+        status: 'ERR',
+        message: 'Khóa học không tồn tại',
+      };
+    }
+    return {
+      status: 200,
+      data: checkCourse,
+      message: 'Show dữ liệu thành công',
+    };
+  }
+
+  async createCourse(data) {
+    try {
+      const { name, description, image, video, chapters, price, priceAmount } = data;
+
+      // Check if the course already exists
+      const checkCourse = await CourseModel.findOne({ name });
+      if (checkCourse) {
+        return {
+          status: 'ERR',
+          message: 'Khóa học đã tồn tại',
+        };
+      }
+
+      // Create the new course
+      const createCourse = await CourseModel.create(data);
+      if (createCourse) {
+        return {
+          status: 200,
+          data: createCourse,
+          message: 'Đã tạo khóa học thành công',
+        };
+      }
+    } catch (error) {
+      // Throw the error to be handled by the controller
+      throw new Error(error.message);
+    }
+  }
+
   async updateCourse(courseId, reqData) {
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
-      const course = await Course.findById(courseId).session(session);
+      const course = await CourseModel.findById(courseId).session(session);
       if (!course) {
         return {
           status: 'ERR',
@@ -81,7 +124,7 @@ class CourseService {
       await course.save({ session });
       await session.commitTransaction();
 
-      const updatedCourse = await Course.findById(courseId).lean();
+      const updatedCourse = await CourseModel.findById(courseId).lean();
       return {
         status: 200,
         message: `Đã cập nhật khóa học id: ${updatedCourse._id}`,
