@@ -55,7 +55,7 @@ class CourseService {
       const checkCourse = await CourseModel.findOne({ name });
       if (checkCourse) {
         return {
-          status: 200,
+          status: "ERR",
           message: 'Khóa học đã tồn tại'
         };
       }
@@ -64,7 +64,7 @@ class CourseService {
       const createCourse = await CourseModel.create(data);
       if (createCourse) {
         return {
-          status: 200,
+          status: "ERR",
           data: createCourse,
           message: 'Đã tạo khóa học thành công'
         };
