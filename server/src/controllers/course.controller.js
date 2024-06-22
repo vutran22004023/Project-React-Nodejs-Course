@@ -1,6 +1,4 @@
-import Course from '../models/course.model.js';
 import { CourseService } from '../services/index.js';
-import mongoose from 'mongoose';
 
 class CourseController {
   // Get all courses
@@ -53,11 +51,6 @@ class CourseController {
       // Send the result back to the client
       return res.status(200).json(result);
     } catch (error) {
-      // Handle validation errors specifically
-      if (error.message.includes('validation')) {
-        return res.status(400).json({ message: error.message });
-      }
-      
       // Handle general errors
       return res.status(500).json({ message: error.message });
     }
