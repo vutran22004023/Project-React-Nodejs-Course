@@ -22,17 +22,13 @@ class CourseController {
   async get(req, res) {
     try {
       const { slug } = req.params;
-      const result = await Course.findOne({ slug: slug }).lean();
-      if (!result)
-        return res.status(404).json({
-          status: 404,
-          message: 'Không tìm thấy khóa học!',
+      if (!slug)
+        return res.status(200).json({
+          status: 'ERR',
+          message: 'Chưa điền đầy đủ thông tin ',
         });
-      res.status(200).json({
-        status: 200,
-        message: `Thông tin khóa học id:  ${result._id}`,
-        data: result,
-      });
+      const result = await CourseService.getDetaiCourse(slug);
+      res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
@@ -41,16 +37,12 @@ class CourseController {
   // Add course
   async add(req, res) {
     try {
-      const result = await Course.create(req.body);
-      res.status(201).json({
-        status: 201,
-        message: 'Thêm khóa học thành công!',
-        data: result,
-      });
+      // Call the service method to create the course
+      const result = await CourseService.createCourse(req.body);
+
+      // Send the result back to the client
+      res.status(200).json(result);
     } catch (error) {
-      if (error.message.includes('validation')) {
-        return res.status(400).json({ message: error.message });
-      }
       res.status(500).json({ message: error.message });
     }
   }
@@ -59,8 +51,13 @@ class CourseController {
   async delete(req, res) {
     try {
       const { id } = req.params;
+      if (!id)
+        return res.status(200).json({
+          status: 'ERR',
+          message: 'Chưa điền đầy đủ thông tin ',
+        });
       if (!mongoose.isValidObjectId(id)) {
-        return res.status(400).json({ status: 400, message: 'ID không hợp lệ!' });
+        return res.status(200).json({ status: 'ERR', message: 'ID không hợp lệ!' });
       }
       const result = await Course.findOneAndDelete({ _id: id });
       if (!result)
@@ -93,9 +90,6 @@ class CourseController {
 
       res.status(200).json(result);
     } catch (error) {
-      if (error.message.includes('validation')) {
-        return res.status(400).json({ message: error.message });
-      }
       res.status(500).json({ message: error.message });
     }
   }
