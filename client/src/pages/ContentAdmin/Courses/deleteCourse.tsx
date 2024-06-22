@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useEffect} from 'react'
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -10,12 +10,45 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import ButtonComponent from '@/components/ButtonComponent/Button'
+import {CourseService} from '@/services/index'
+import { useMutationHook } from '@/hooks/index';
+import { success, error } from '@/components/MessageComponents/Message'
+import { message } from 'antd';
+import {useCombinedData } from '@/hooks/index'
 interface DeleteProps {
     id: string;
     isOpen: boolean;
     onClose: () => void;
   }
 export default function deleteCourse({id,isOpen, onClose}: DeleteProps) {
+  const getAllCourses = async() => {
+    const res = await CourseService.GetAllCourses()
+    return res
+ } 
+  const fetchTableData =useCombinedData('dataAllCoursess', getAllCourses);
+  const { data: _dataAllCourses, error: _Errdata, isLoading: _isLoadingAllCourses,refetch  } = fetchTableData
+  const mutationDeleteCourses = useMutationHook(async(idDelete) => {
+    const res = await CourseService.DeleteCourses(idDelete)
+    return res
+  })
+
+  const {data: dataDeleteCourses} = mutationDeleteCourses
+
+  useEffect(() => {
+    if(dataDeleteCourses?.status === 200) {
+      success(`${dataDeleteCourses?.message}`)
+    }else if(dataDeleteCourses?.status === 'ERR') {
+      error(`${dataDeleteCourses?.message}`)
+    }
+  },[dataDeleteCourses])
+
+  const handleButtonDelete = () => {
+    mutationDeleteCourses.mutate(id)
+    onClose()
+    refetch()
+  }
+
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogTrigger asChild>
@@ -28,7 +61,7 @@ export default function deleteCourse({id,isOpen, onClose}: DeleteProps) {
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <ButtonComponent type="submit">Xóa khóa học</ButtonComponent>
+          <ButtonComponent type="submit" onClick={handleButtonDelete}>Xóa khóa học</ButtonComponent>
         </DialogFooter>
       </DialogContent>
     </Dialog>

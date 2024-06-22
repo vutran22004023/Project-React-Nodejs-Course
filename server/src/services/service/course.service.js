@@ -74,6 +74,47 @@ class CourseService {
       throw new Error(error.message);
     }
   }
+
+  async updateCourses (id, data) {
+    try {
+      const checkCourses = await CourseModel.findOne({_id: id })
+      if(!checkCourses) {
+        return {
+          status: 'ERR',
+          message: 'Không tìn thấy id này'
+        }
+      }
+      const updateCourse = await CourseModel.findByIdAndUpdate(id, data,{ new: true })
+    return {
+      status: 200,
+      message: `Cập nhập thành công id : ${updateCourse._id}`,
+      data: {
+        ...updateCourse._doc,
+      }
+    }
+  }catch(error) {
+    throw new Error(error.message);
+  }
+  }
+
+  async deleteCourses (id) {
+    try {
+      const checkCourses = await CourseModel.findById(id)
+      if(!checkCourses) {
+        return {
+          status: 'ERR',
+          message: "Id này không tồn tại"
+        }
+      }
+       await CourseModel.findOneAndDelete({ _id: id });
+      return {
+        status: 200,
+        message: 'Đã xóa thành công '
+      }
+    }catch(error) {
+      throw new Error(error.message);
+    }
+  }
 }
 
 export default new CourseService();

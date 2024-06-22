@@ -42,7 +42,7 @@ import UpdateCourse from "./updateCourse"
 import DeleteCourse from './deleteCourse'
 import {IfetchTable} from '@/types/index'
 export type Payment = {
-  id: string,
+  _id: string,
   name: number,
   price: number,
   priceAmount: string,
@@ -102,8 +102,11 @@ export const columns: ColumnDef<Payment>[] = [
     header: () => <div className="text-right">Số tiền khóa học</div>,
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue("priceAmount"))
+      if (isNaN(amount) || row.getValue("priceAmount") === "") {
+        return <div className="text-right font-medium">Free</div>
+      }
 
-      // Format the amount as a dollar amount
+      // Format the amount as VND
       const formatted = new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: "VND",
@@ -128,13 +131,14 @@ export const columns: ColumnDef<Payment>[] = [
   },
   {
     id: "actions",
+    header: "Actions",
     enableHiding: false,
     cell: ({ row }) => {
       const payment = row.original
       const [isOpenUpdate, setIsOpenUpdate] = React.useState(false);
       const [isOpenDelete, setIsOpenDelete] = React.useState(false)
       const [dataDetailCourses, setDataDeatilCourses] = React.useState('');
-      
+      const [idDeleteCourses, setIdDeleteCourses] = React.useState('');
       const handleOpenUpdate = (payment: any) => {
         setDataDeatilCourses(payment);
         setIsOpenUpdate(true);
@@ -145,7 +149,8 @@ export const columns: ColumnDef<Payment>[] = [
       };
 
       const handleOpenDelete = (id: string) => {
-        setDataDeatilCourses(id);
+        console.log(id)
+        setIdDeleteCourses(id);
         setIsOpenDelete(true);
       };
 
@@ -170,10 +175,10 @@ export const columns: ColumnDef<Payment>[] = [
             </DropdownMenuItem  >
             <DropdownMenuItem className="p-3 cursor-pointer hover:bg-[#848484] rounded-xl mb-1">Xem bình luận</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => handleOpenDelete(payment.id)} className="p-3 cursor-pointer hover:bg-[#848484] rounded-xl">Xóa</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleOpenDelete(payment?._id)} className="p-3 cursor-pointer hover:bg-[#848484] rounded-xl">Xóa</DropdownMenuItem>
           </DropdownMenuContent>
           <UpdateCourse  data={dataDetailCourses} isOpen={isOpenUpdate} onClose={handleCloseUpdate}/>
-          <DeleteCourse id={dataDetailCourses} isOpen={isOpenDelete} onClose={handleCloseDelete} />
+          <DeleteCourse id={idDeleteCourses} isOpen={isOpenDelete} onClose={handleCloseDelete} />
         </DropdownMenu>
       )
     },
@@ -228,7 +233,7 @@ export function DataTableDemo({ fetchTableData }: IfetchTable) {
               Columns <ChevronDownIcon className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="bg-[#e9e9e9]">
             {table
               .getAllColumns()
               .filter((column) => column.getCanHide())

@@ -63,64 +63,49 @@ class CourseController {
     }
   }
 
-  // Delete course
-  async delete(req, res) {
-    try {
-      const { id } = req.params;
-      if (!mongoose.isValidObjectId(id)) {
-        return res.status(400).json({ status: 400, message: 'ID không hợp lệ!' });
+    async updateCourses (req, res) {
+      try{
+        const { id } = req.params;
+        const data = req.body;
+        if(!id){
+          return res.status(200).json({
+            status: 'ERR',
+            message: 'Chưa truyền id'
+          })
+        }
+        if(!data) {
+          return res.status(200).json({
+            status: 'ERR',
+            message: 'Chưa truyền đầy đủ thông tin'
+          })
+        }
+
+        const result = await CourseService.updateCourses(id, data)
+        return res.status(200).json(result);
+      }catch (error) {
+        res.status(500).json({ message: error.message });
       }
-      const result = await Course.findOneAndDelete({ _id: id });
-      if (!result)
-        res.status(404).json({
-          status: 404,
-          message: 'Không tìm thấy khóa học!',
-        });
-      else
-        res.status(200).json({
-          status: 200,
-          message: `Đã xóa khóa học id: ${result._id}`,
-        });
-    } catch (error) {
-      res.status(500).json({ message: error.message });
     }
-  }
 
-  // Update course
-  async update(req, res) {
-    try {
-      const { id } = req.params;
-      if (!mongoose.isValidObjectId(id)) {
-        return res.status(400).json({
-          status: 400,
-          message: 'ID không hợp lệ!',
-        });
+
+    
+    async deleteCourses(req, res) {
+      try {
+        const { id } = req.params;
+        if(!id) {
+          return res.status(200).json({
+            status: 200,
+            message: 'Chưa điền thông tin'
+          })
+        }
+        
+        const result = await CourseService.deleteCourses(id);
+        return res.status(200).json(result);
+      } catch (error) {
+        res.status(500).json({ message: error.message });
       }
-
-      const result = await Course.findOneAndUpdate(
-        { _id: id },
-        { $set: { chapters: req.body.chapters } },
-        { new: true, runValidators: true }
-      ).lean();
-
-      if (!result)
-        res.status(404).json({
-          status: 404,
-          message: 'Không tìm thấy khóa học!',
-        });
-      else
-        res.status(200).json({
-          status: 200,
-          message: `Đã cập nhật khóa học id: ${result._id}`,
-          data: result,
-        });
-    } catch (error) {
-      if (error.message.includes('validation')) {
-        return res.status(400).json({ message: error.message });
-      }
-      res.status(500).json({ message: error.message });
     }
-  }
+
 }
 
 export default new CourseController();

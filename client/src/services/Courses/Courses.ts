@@ -19,7 +19,27 @@ const CreateCourses = async (data: any) => {
     }
   };
 
+  const UpdateCourse = async (id: any,data: any) => {
+    try {
+      const response: AxiosResponse = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/course/update-courses/${id}`, data);
+      return response.data;
+    } catch {
+      throw new Error('Error registering');
+    }
+  };
+
+  const DeleteCourses = async (id: any) => {
+    try {
+      const response: AxiosResponse = await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/api/course/delete-courses/${id}`);
+      return response.data;
+    } catch {
+      throw new Error('Error registering');
+    }
+  };
+
 export default {
     GetAllCourses,
-    CreateCourses
+    CreateCourses,
+    DeleteCourses,
+    UpdateCourse
 }
