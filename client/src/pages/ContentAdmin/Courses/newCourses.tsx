@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { useDropzone } from "react-dropzone";
-import { cn } from "@/lib/utils";
 import ButtonComponent from "@/components/ButtonComponent/Button";
 import {
   Form,
@@ -26,10 +25,15 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
-import { CourseService } from '@/services/index';
-import { useMutationHook } from '@/hooks/index';
-import {success, error} from '@/components/MessageComponents/Message'
-import {IfetchTable} from '@/types/index'
+import { CourseService } from "@/services/index";
+import { useMutationHook } from "@/hooks/index";
+import { success, error } from "@/components/MessageComponents/Message";
+import { IfetchTable } from "@/types/index";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { imageDb } from "@/firebase/config";
+import { v4 } from "uuid";
+import ImageUpload from "@/components/UpLoadImgComponent/ImageUpload";
+
 interface IProp {
   chapter: any;
   chapterIndex: any;
@@ -37,13 +41,12 @@ interface IProp {
   removeChapter: any;
 }
 
-
 // Function to generate slug
 const generateSlug = (str: string) => {
   return str
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 };
 
 // Schema validation using Zod
@@ -106,45 +109,42 @@ export default function NewCourses({ fetchTableData }: IfetchTable) {
     control: form.control,
   });
 
-  const onDrop = useCallback(
-    (acceptedFiles: any) => {
-      const file = acceptedFiles[0];
-      form.setValue("image", file);
-      setImagePreview(URL.createObjectURL(file));
-    },
-    [form]
-  );
+  const handleImageUpload = (file: File) => {
+    form.setValue("image", file);
+    setImagePreview(URL.createObjectURL(file));
+  };
 
-  const { getRootProps, getInputProps } = useDropzone({
-    onDrop,
-    accept: { 'image/*': [] },
-  });
-
-  const mutateCreate = useMutationHook(async (data) => {
+  const mutateCreate = useMutationHook(async (data: any) => {
+    if (data.image) {
+      const imgRef = ref(imageDb, `files/${v4()}`);
+      const snapshot = await uploadBytes(imgRef, data.image);
+      const url = await getDownloadURL(snapshot.ref);
+      data.image = url; // replace the File object with the URL string
+    }
     const res = await CourseService.CreateCourses(data);
     return res;
   });
-  
+
   const { data: dataCreate } = mutateCreate;
   useEffect(() => {
-    if(dataCreate?.status === 200) {
-      success(`${dataCreate?.message}`)
-      setImagePreview(null); 
+    if (dataCreate?.status === 200) {
+      success(`${dataCreate?.message}`);
+      setImagePreview(null);
       setIsModalOpen(false);
       fetchTableData.refetch();
       form.reset();
-    }else if(dataCreate?.status === 'ERR') {
-      error(`${dataCreate?.message}`)
+    } else if (dataCreate?.status === "ERR") {
+      error(`${dataCreate?.message}`);
     }
-  }, [dataCreate])
+  }, [dataCreate]);
 
   const onSubmit = (data: CourseFormValues) => {
     // Generate slugs before submitting
     data.slug = generateSlug(data.name);
-    data.chapters = data.chapters.map(chapter => ({
+    data.chapters = data.chapters.map((chapter) => ({
       ...chapter,
       slug: generateSlug(chapter.namechapter),
-      videos: chapter.videos.map(video => ({
+      videos: chapter.videos.map((video) => ({
         ...video,
         slug: generateSlug(video.childname),
       })),
@@ -172,7 +172,7 @@ export default function NewCourses({ fetchTableData }: IfetchTable) {
       contentBody={
         <div className="p-2 max-h-[500px] overflow-y-auto">
           <Form {...form}>
-            <form className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="name"
@@ -193,7 +193,11 @@ export default function NewCourses({ fetchTableData }: IfetchTable) {
                   <FormItem>
                     <FormLabel>Giá khóa học</FormLabel>
                     <FormControl>
-                      <Select {...field} onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        {...field}
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Chọn giá khóa học" />
                         </SelectTrigger>
@@ -229,35 +233,34 @@ export default function NewCourses({ fetchTableData }: IfetchTable) {
                   <FormItem>
                     <FormLabel>Đường dẫn video giới thiệu</FormLabel>
                     <FormControl>
-                      <Input placeholder="Nhập URL video giới thiệu" {...field} />
+                      <Input
+                        placeholder="Nhập URL video giới thiệu"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage className="text-[red]" />
                   </FormItem>
                 )}
               />
+              <ImageUpload onImageUpload={handleImageUpload} />
               <FormField
                 control={form.control}
                 name="image"
-                render={() => (
+                render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Hình ảnh khóa học</FormLabel>
-                    <div {...getRootProps({ className: "dropzone cursor-pointer w-[100px]" })}>
-                      <input {...getInputProps()} />
-                      <p className="p-2 bg-black text-[#fff] w-[100px] cursor-pointer rounded-md">Thêm ảnh</p>
-                    </div>
-                    {imagePreview && (
-                      <div className="mt-4">
-                        <img
-                          src={imagePreview}
-                          alt="Image Preview"
-                          className="w-[200px] h-[200px] object-cover rounded-lg"
-                        />
-                      </div>
-                    )}
                     <FormMessage className="text-[red]" />
                   </FormItem>
                 )}
               />
+              {imagePreview && (
+                <div className="mt-4">
+                  <img
+                    src={imagePreview}
+                    alt="Image Preview"
+                    className="w-[200px] h-[200px] object-cover rounded-lg"
+                  />
+                </div>
+              )}
               {chapterFields.map((chapter, chapterIndex) => (
                 <ChapterField
                   key={chapter.id}

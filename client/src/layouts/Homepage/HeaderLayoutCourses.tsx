@@ -1,12 +1,16 @@
-import { Link } from "react-router-dom";
+import React, {useEffect} from 'react'
+import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowBigLeft,
  } from "lucide-react";
 // import { CalendarDays } from "lucide-react"
 import { Flex, Progress } from 'antd';
-
+import { useSelector, useDispatch } from "react-redux";
 import ButtonComponent from '@/components/ButtonComponent/Button'
+import { RootState } from "@/redux/store";
+import { success, error, warning } from "@/components/MessageComponents/Message";
 export default function HeaderLayoutCourses() {
+
   return (
     <div className="fixed top-0 left-0 bg-[#fff] right-0 z-10 border-b p-3 flex justify-between items-center">
       <div className="flex  justify-center items-center">
