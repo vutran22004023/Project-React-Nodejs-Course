@@ -37,7 +37,10 @@ import { toast } from "@/components/ui/use-toast";
 import { CourseService } from "@/services";
 import { useMutationHook } from "@/hooks";
 import {success, error} from '@/components/MessageComponents/Message'
-import { message } from 'antd';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { imageDb } from '@/firebase/config';
+import { v4 } from 'uuid';
+import ImageUpload from '@/components/UpLoadImgComponent/ImageUpload';
 interface UpdateProps {
   data: any;
   isOpen: boolean;
@@ -120,21 +123,31 @@ const UpdateCourse: React.FC<UpdateProps> = ({ data, isOpen, onClose }) => {
     control: form.control,
   });
 
-  const onDrop = useCallback(
-    (acceptedFiles: any) => {
-      const file = acceptedFiles[0];
-      form.setValue("image", file);
-      setImagePreview(URL.createObjectURL(file));
-    },
-    [form]
-  );
+  // const onDrop = useCallback(
+  //   (acceptedFiles: any) => {
+  //     const file = acceptedFiles[0];
+  //     form.setValue("image", file);
+  //     setImagePreview(URL.createObjectURL(file));
+  //   },
+  //   [form]
+  // );
 
-  const { getRootProps, getInputProps } = useDropzone({
-    onDrop,
-    accept: { "image/*": [] },
-  });
+  // const { getRootProps, getInputProps } = useDropzone({
+  //   onDrop,
+  //   accept: { "image/*": [] },
+  // });
+  const handleImageUpload = (file: File) => {
+    form.setValue("image", file);
+    setImagePreview(URL.createObjectURL(file));
+  };
 
-  const mutationUpdate = useMutationHook(async(dataForm) => {
+  const mutationUpdate = useMutationHook(async(dataForm: any) => {
+    if (dataForm.image) {
+      const imgRef = ref(imageDb, `files/${v4()}`);
+      const snapshot = await uploadBytes(imgRef, dataForm.image);
+      const url = await getDownloadURL(snapshot.ref);
+      dataForm.image = url; // replace the File object with the URL string
+    }
     const res = await CourseService.UpdateCourse(data._id, dataForm)
     return res
   })
@@ -169,7 +182,7 @@ const UpdateCourse: React.FC<UpdateProps> = ({ data, isOpen, onClose }) => {
       <SheetContent className="bg-[#fff] pr-[20px] w-[600px]">
         <SheetHeader className="mb-3">
           <SheetTitle>
-            <div>Edit profile</div>
+            <div>Chỉnh sửa khóa học </div>
           </SheetTitle>
         </SheetHeader>
         <div className="max-h-[580px] overflow-y-auto">
@@ -244,35 +257,19 @@ const UpdateCourse: React.FC<UpdateProps> = ({ data, isOpen, onClose }) => {
                   </FormItem>
                 )}
               />
+              <ImageUpload onImageUpload={handleImageUpload} />
               <FormField
                 control={form.control}
                 name="image"
-                render={() => (
+                render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Hình ảnh khóa học</FormLabel>
-                    <div
-                      {...getRootProps({
-                        className: "dropzone cursor-pointer w-[100px]",
-                      })}
-                    >
-                      <input {...getInputProps()} />
-                      <p className="p-2 bg-black text-[#fff] w-[100px] cursor-pointer rounded-md">
-                        Thêm ảnh
-                      </p>
-                    </div>
-                    {imagePreview && (
-                      <div className="mt-4">
-                        <img
-                          src={imagePreview}
-                          alt="Image Preview"
-                          className="w-[200px] h-[200px] object-cover rounded-lg"
-                        />
-                      </div>
-                    )}
                     <FormMessage className="text-[red]" />
                   </FormItem>
                 )}
               />
+              {imagePreview && (
+                <img src={imagePreview} alt="Preview" className="mt-2 h-[200px]" style={{ maxWidth: "100%" }} />
+              )}
               {chapterFields.map((chapter, chapterIndex) => (
                 <ChapterField
                   key={chapter.id}

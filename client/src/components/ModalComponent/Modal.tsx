@@ -12,10 +12,12 @@ import {
     contentHeader: ReactNode;
     contentBody: ReactNode;
     contentFooter: ReactNode;
+    isOpen: boolean;
+    setIsOpen: (isOpen: boolean) => void;
   }
-export default function Modal({ triggerContent, contentHeader, contentBody, contentFooter }: UserDialogProps) {
+export default function Modal({ triggerContent, contentHeader, contentBody, contentFooter, isOpen, setIsOpen }: UserDialogProps) {
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         {triggerContent}
       </DialogTrigger>

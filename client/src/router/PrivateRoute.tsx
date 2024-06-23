@@ -2,17 +2,20 @@ import React, { useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
-import { useDispatch } from 'react-redux';
+import { useDispatch,useSelector } from 'react-redux';
 import { updateUser } from '@/redux/Slides/userSide'; // Adjust path as necessary
 import { success, error, warning } from "@/components/MessageComponents/Message";
-
+import { RootState } from "@/redux/store";
 interface DecodedToken {
   id: string;
   isAdmin: boolean;
   exp: number;
 }
+interface PrivateUserRouteProps {
+  children?: React.ReactNode;
+}
 
-const PrivateRoute: React.FC = () => {
+export const PrivateRoute: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -20,7 +23,7 @@ const PrivateRoute: React.FC = () => {
     const checkAuth = async () => {
       const accessToken = getAccessTokenFromCookie();
       if (!accessToken) {
-        error('Hiện tại bạn chưa đăng nhập');
+        // error('Hiện tại bạn chưa đăng nhập');
         return;
       }
 
@@ -109,6 +112,7 @@ const PrivateRoute: React.FC = () => {
   // };
 
   const handleGetDetailsUser = async (userId: string, accessToken: string) => {
+
     try {
       const response = await axios.get(`/api/user/get-detail-user/${userId}`, {
         headers: {
@@ -129,4 +133,34 @@ const PrivateRoute: React.FC = () => {
   );
 };
 
-export default PrivateRoute;
+interface PrivateAdminRouteProps {
+  children?: React.ReactNode;
+}
+export const PrivateAdminRoute: React.FC<PrivateAdminRouteProps> = ({ children }) => {
+  const navigate = useNavigate();
+  const user = useSelector((state: RootState) => state.user);
+
+  useEffect(() => {
+    if (!user?.access_Token || user?.isAdmin !== true || user?.status !== true) {
+      error('Bạn không phải quản trị viên');
+      navigate('/');
+    }
+  }, [navigate, user]);
+  return <>{children}</>;
+}
+
+export const PrivateUserRoute: React.FC<PrivateUserRouteProps> = ({ children }) => {
+  const navigate = useNavigate();
+  const user = useSelector((state: RootState) => state.user);
+  useEffect(() => {
+    console.log(user)
+    // if (!user?.access_Token || user?.status !== true) {
+    //   error('Bạn không có quyền truy cập');
+    //   navigate('/');
+    // }
+  }, [user,navigate]);
+
+  return <>{children}</>;
+};
+
+

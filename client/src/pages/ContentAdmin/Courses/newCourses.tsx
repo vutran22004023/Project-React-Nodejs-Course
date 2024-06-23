@@ -1,11 +1,10 @@
-import React from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import ModalComponent from "@/components/ModalComponent/Modal";
 import { Button } from "@/components/ui/button";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm, Controller } from "react-hook-form";
 import { z } from "zod";
-
-import { cn } from "@/lib/utils";
+import { useDropzone } from "react-dropzone";
 import ButtonComponent from "@/components/ButtonComponent/Button";
 import {
   Form,
@@ -26,10 +25,15 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
-import { CourseService } from '@/services/index';
-import { useMutationHook } from '@/hooks/index';
-import {success, error} from '@/components/MessageComponents/Message'
-import {IfetchTable} from '@/types/index'
+import { CourseService } from "@/services/index";
+import { useMutationHook } from "@/hooks/index";
+import { success, error } from "@/components/MessageComponents/Message";
+import { IfetchTable } from "@/types/index";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { imageDb } from "@/firebase/config";
+import { v4 } from "uuid";
+import ImageUpload from "@/components/UpLoadImgComponent/ImageUpload";
+
 interface IProp {
   chapter: any;
   chapterIndex: any;
@@ -37,13 +41,12 @@ interface IProp {
   removeChapter: any;
 }
 
-
 // Function to generate slug
 const generateSlug = (str: string) => {
   return str
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 };
 
 // Schema validation using Zod
@@ -51,11 +54,13 @@ const videoSchema = z.object({
   childname: z.string().min(1, "Vui lòng nhập tên video"),
   video: z.string().url("Vui lòng nhập URL hợp lệ"),
   time: z.string().optional(),
+  slug: z.string().optional(),
 });
 
 const chapterSchema = z.object({
   namechapter: z.string().min(1, "Vui lòng nhập tên chương"),
   videos: z.array(videoSchema),
+  slug: z.string().optional(),
 });
 
 const courseFormSchema = z.object({
@@ -65,22 +70,25 @@ const courseFormSchema = z.object({
     .max(30, "Tên khóa học phải tối đa 30 kí tự"),
   price: z.enum(["free", "paid"]),
   priceAmount: z.string().optional(),
+  video: z.string().url("Vui lòng nhập URL hợp lệ").optional(),
+  image: z.instanceof(File).optional(),
   chapters: z.array(chapterSchema),
+  slug: z.string().optional(),
 });
 
 type CourseFormValues = z.infer<typeof courseFormSchema>;
 
 // Default values (optional)
 const defaultValues: Partial<CourseFormValues> = {
-  chapters: [
-    {
-      namechapter: "Chapter 1",
-      videos: [
-        { childname: "Video 1.1", video: "http://video-url-1", time: "10:00" },
-        { childname: "Video 1.2", video: "http://video-url-2", time: "15:00" },
-      ],
-    },
-  ],
+  // chapters: [
+  //   {
+  //     namechapter: "Chapter 1",
+  //     videos: [
+  //       { childname: "Video 1.1", video: "http://video-url-1", time: "10:00" },
+  //       { childname: "Video 1.2", video: "http://video-url-2", time: "15:00" },
+  //     ],
+  //   },
+  // ],
 };
 
 export default function NewCourses({ fetchTableData }: IfetchTable) {
@@ -101,45 +109,42 @@ export default function NewCourses({ fetchTableData }: IfetchTable) {
     control: form.control,
   });
 
-  const onDrop = useCallback(
-    (acceptedFiles: any) => {
-      const file = acceptedFiles[0];
-      form.setValue("image", file);
-      setImagePreview(URL.createObjectURL(file));
-    },
-    [form]
-  );
+  const handleImageUpload = (file: File) => {
+    form.setValue("image", file);
+    setImagePreview(URL.createObjectURL(file));
+  };
 
-  const { getRootProps, getInputProps } = useDropzone({
-    onDrop,
-    accept: { 'image/*': [] },
-  });
-
-  const mutateCreate = useMutationHook(async (data) => {
+  const mutateCreate = useMutationHook(async (data: any) => {
+    if (data.image) {
+      const imgRef = ref(imageDb, `files/${v4()}`);
+      const snapshot = await uploadBytes(imgRef, data.image);
+      const url = await getDownloadURL(snapshot.ref);
+      data.image = url; // replace the File object with the URL string
+    }
     const res = await CourseService.CreateCourses(data);
     return res;
   });
-  
+
   const { data: dataCreate } = mutateCreate;
   useEffect(() => {
-    if(dataCreate?.status === 200) {
-      success(`${dataCreate?.message}`)
-      setImagePreview(null); 
+    if (dataCreate?.status === 200) {
+      success(`${dataCreate?.message}`);
+      setImagePreview(null);
       setIsModalOpen(false);
       fetchTableData.refetch();
       form.reset();
-    }else if(dataCreate?.status === 'ERR') {
-      error(`${dataCreate?.message}`)
+    } else if (dataCreate?.status === "ERR") {
+      error(`${dataCreate?.message}`);
     }
-  }, [dataCreate])
+  }, [dataCreate]);
 
   const onSubmit = (data: CourseFormValues) => {
     // Generate slugs before submitting
     data.slug = generateSlug(data.name);
-    data.chapters = data.chapters.map(chapter => ({
+    data.chapters = data.chapters.map((chapter) => ({
       ...chapter,
       slug: generateSlug(chapter.namechapter),
-      videos: chapter.videos.map(video => ({
+      videos: chapter.videos.map((video) => ({
         ...video,
         slug: generateSlug(video.childname),
       })),
@@ -149,6 +154,8 @@ export default function NewCourses({ fetchTableData }: IfetchTable) {
 
   return (
     <ModalComponent
+      isOpen={isModalOpen}
+      setIsOpen={setIsModalOpen}
       triggerContent={
         <Button
           className="bg-[black] p-5 text-[#fff] hover:bg-[#6c6a6a]"
@@ -157,15 +164,15 @@ export default function NewCourses({ fetchTableData }: IfetchTable) {
           Thêm khóa học
         </Button>
       }
-      contentHeader={<>
-      <div>Thêm khóa học mới</div>
-      </>}
+      contentHeader={
+        <>
+          <div>Thêm khóa học mới</div>
+        </>
+      }
       contentBody={
         <div className="p-2 max-h-[500px] overflow-y-auto">
-          {" "}
-          {/* Add max height and scroll */}
           <Form {...form}>
-            <form className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="name"
@@ -186,7 +193,11 @@ export default function NewCourses({ fetchTableData }: IfetchTable) {
                   <FormItem>
                     <FormLabel>Giá khóa học</FormLabel>
                     <FormControl>
-                      <Select {...field} onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        {...field}
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Chọn giá khóa học" />
                         </SelectTrigger>
@@ -208,15 +219,47 @@ export default function NewCourses({ fetchTableData }: IfetchTable) {
                     <FormItem>
                       <FormLabel>Số tiền</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="Nhập số tiền"
-                          {...field}
-                        />
+                        <Input placeholder="Nhập số tiền" {...field} />
                       </FormControl>
                       <FormMessage className="text-[red]" />
                     </FormItem>
                   )}
                 />
+              )}
+              <FormField
+                control={form.control}
+                name="video"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Đường dẫn video giới thiệu</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Nhập URL video giới thiệu"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage className="text-[red]" />
+                  </FormItem>
+                )}
+              />
+              <ImageUpload onImageUpload={handleImageUpload} />
+              <FormField
+                control={form.control}
+                name="image"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormMessage className="text-[red]" />
+                  </FormItem>
+                )}
+              />
+              {imagePreview && (
+                <div className="mt-4">
+                  <img
+                    src={imagePreview}
+                    alt="Image Preview"
+                    className="w-[200px] h-[200px] object-cover rounded-lg"
+                  />
+                </div>
               )}
               {chapterFields.map((chapter, chapterIndex) => (
                 <ChapterField
@@ -274,8 +317,6 @@ function ChapterField({
 
   return (
     <div key={chapter.id} className="p-4 border rounded-md mb-4">
-      {" "}
-      {/* Add padding, border, and margin */}
       <div className="flex justify-between items-center">
         <div>Chương {chapterIndex + 1}</div>
         <ButtonComponent
@@ -303,8 +344,6 @@ function ChapterField({
       />
       {videoFields.map((video, videoIndex) => (
         <div key={video.id} className="pl-4 mt-4 border-l-2">
-          {" "}
-          {/* Add padding and left border */}
           <div className="flex justify-between items-center">
             <div>Video {videoIndex + 1}</div>
             <ButtonComponent
@@ -322,7 +361,7 @@ function ChapterField({
             name={`chapters.${chapterIndex}.videos.${videoIndex}.childname`}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Tên video </FormLabel>
+                <FormLabel>Tên video</FormLabel>
                 <FormControl>
                   <Input placeholder="Nhập tên video" {...field} />
                 </FormControl>

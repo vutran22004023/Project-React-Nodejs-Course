@@ -28,7 +28,7 @@ export default function CourseLogin() {
               Domain là gì? Tên miền là gì?
             </div>
             <ButtonComponment
-              className="p-5"
+              className="p-5 w-[200px]"
               style={{ marginTop: "0", borderRadius: "10px" }}
             >
               {" "}
@@ -72,13 +72,13 @@ export default function CourseLogin() {
       <div className="fixed bottom-0 left-0 bg-[#dbdbdb] right-0 z-10 border-b p-3 flex  items-center">
         <div className="flex justify-center items-center w-full">
           <ButtonComponment
-            className=""
+            className="w-[200px]"
             style={{ marginTop: "0", borderRadius: "10px", marginRight: "5px" }}
           >
             <ArrowBigLeft/>BÀI TRƯỚC
           </ButtonComponment>
           <ButtonComponment
-            className=""
+            className="w-[200px]"
             style={{ marginTop: "0", borderRadius: "10px" }}
           >
             BÀI TIẾP THEO<ArrowBigRight/>
@@ -87,7 +87,7 @@ export default function CourseLogin() {
         <div className="absolute top-1/2 right-0 transform -translate-y-1/2 mr-3 flex items-center">
           <div>1. Khái niệm kỹ thuật cần biết</div>
           <ButtonComponment
-            className="ml-2 p-3"
+            className="ml-2 p-3 w-[50px]"
             style={{ marginTop: "0", borderRadius: "60%" }}
           >
             <ArrowBigRight/>

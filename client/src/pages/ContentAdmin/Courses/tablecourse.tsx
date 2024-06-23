@@ -76,30 +76,30 @@ export const columns: ColumnDef<Payment>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "status",
-    header: "Status",
+    accessorKey: "name",
+    header: "Tên khóa học",
     cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("status")}</div>
+      <div className="capitalize">{row.getValue("name")}</div>
     ),
   },
   {
-    accessorKey: "email",
+    accessorKey: "price",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Email
+          Kiểu khóa học
           <CaretSortIcon className="ml-2 h-4 w-4" />
         </Button>
       )
     },
-    cell: ({ row }) => <div className="lowercase">{row.getValue("email")}</div>,
+    cell: ({ row }) => <div className="lowercase">{row.getValue("price")}</div>,
   },
   {
-    accessorKey: "amount",
-    header: () => <div className="text-right">Amount</div>,
+    accessorKey: "priceAmount",
+    header: () => <div className="text-right">Số tiền khóa học</div>,
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue("priceAmount"))
       if (isNaN(amount) || row.getValue("priceAmount") === "") {
@@ -109,11 +109,25 @@ export const columns: ColumnDef<Payment>[] = [
       // Format the amount as VND
       const formatted = new Intl.NumberFormat("en-US", {
         style: "currency",
-        currency: "USD",
+        currency: "VND",
       }).format(amount)
 
       return <div className="text-right font-medium">{formatted}</div>
     },
+  },
+  {
+    accessorKey: "createdAt",
+    header: "Ngày tạo",
+    cell: ({ row }) => (
+      <div className="capitalize">{row.getValue("createdAt")}</div>
+    ),
+  },
+  {
+    accessorKey: "updatedAt",
+    header: "Ngày cập nhập",
+    cell: ({ row }) => (
+      <div className="capitalize">{row.getValue("updatedAt")}</div>
+    ),
   },
   {
     id: "actions",
@@ -204,7 +218,7 @@ export function DataTableDemo({ fetchTableData }: IfetchTable) {
   return (
     <div className="w-full">
       <div className="flex items-center py-4">
-        <Input
+        {/* <Input
           placeholder="Filter emails..."
           value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
@@ -212,7 +226,7 @@ export function DataTableDemo({ fetchTableData }: IfetchTable) {
           }
           className="max-w-sm"
           style={{borderRadius: '10px'}}
-        />
+        /> */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
