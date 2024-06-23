@@ -137,7 +137,6 @@ class CourseService {
     if (err.name === 'ValidationError') {
       const field = Object.keys(err.errors)[0];
       const error = err.errors[field];
-      console.log('CourseService ~ validator ~ error:', error);
       if (error.kind === 'unique') {
         const readableField =
           {

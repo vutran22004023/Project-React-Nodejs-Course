@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect  } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +12,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import ButtonComponent from '@/components/ButtonComponent/Button';
+import ButtonComponent from "@/components/ButtonComponent/Button";
 import { z } from "zod";
 import {
   Form,
@@ -34,7 +34,10 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useDropzone } from "react-dropzone";
 import { toast } from "@/components/ui/use-toast";
-
+import { CourseService } from "@/services";
+import { useMutationHook } from "@/hooks";
+import {success, error} from '@/components/MessageComponents/Message'
+import { message } from 'antd';
 interface UpdateProps {
   data: any;
   isOpen: boolean;
@@ -48,16 +51,24 @@ interface IProp {
   removeChapter: any;
 }
 
+const generateSlug = (str: string) => {
+  return str
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+};
 // Schema validation using Zod
 const videoSchema = z.object({
   childname: z.string().min(1, "Vui lòng nhập tên video"),
   video: z.string().url("Vui lòng nhập URL hợp lệ"),
   time: z.string().optional(),
+  slug: z.string().optional(),
 });
 
 const chapterSchema = z.object({
   namechapter: z.string().min(1, "Vui lòng nhập tên chương"),
   videos: z.array(videoSchema),
+  slug: z.string().optional(),
 });
 
 const courseFormSchema = z.object({
@@ -70,6 +81,7 @@ const courseFormSchema = z.object({
   video: z.string().url("Vui lòng nhập URL hợp lệ").optional(),
   image: z.instanceof(File).optional(),
   chapters: z.array(chapterSchema),
+  slug: z.string().optional(),
 });
 
 type CourseFormValues = z.infer<typeof courseFormSchema>;
@@ -119,20 +131,37 @@ const UpdateCourse: React.FC<UpdateProps> = ({ data, isOpen, onClose }) => {
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
-    accept: { 'image/*': [] },
+    accept: { "image/*": [] },
   });
 
+  const mutationUpdate = useMutationHook(async(dataForm) => {
+    const res = await CourseService.UpdateCourse(data._id, dataForm)
+    return res
+  })
+
+  const {data: dataUpdateCourses} = mutationUpdate
+
+  useEffect(() => {
+    if(dataUpdateCourses?.status === 200) {
+      success(`${dataUpdateCourses?.message}`)
+      onClose()
+    }else if(dataUpdateCourses?.status === 'ERR') {
+      error(`${dataUpdateCourses?.message}`)
+    }
+  },[dataUpdateCourses])
+
   const onSubmit = (formData: CourseFormValues) => {
-    toast({
-      title: "You submitted the following values:",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(formData, null, 2)}</code>
-        </pre>
-      ),
-    });
-    console.log(formData);
-  }
+    formData.slug = generateSlug(formData.name);
+    formData.chapters = formData.chapters.map(chapter => ({
+      ...chapter,
+      slug: generateSlug(chapter.namechapter),
+      videos: chapter.videos.map(video => ({
+        ...video,
+        slug: generateSlug(video.childname),
+      })),
+    }));
+    mutationUpdate.mutate(formData)
+  };
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -144,7 +173,7 @@ const UpdateCourse: React.FC<UpdateProps> = ({ data, isOpen, onClose }) => {
           </SheetTitle>
         </SheetHeader>
         <div className="max-h-[580px] overflow-y-auto">
-          <Form {...form}>
+          <Form {...form} >
             <form className="space-y-4">
               <FormField
                 control={form.control}
@@ -166,7 +195,11 @@ const UpdateCourse: React.FC<UpdateProps> = ({ data, isOpen, onClose }) => {
                   <FormItem>
                     <FormLabel>Giá khóa học</FormLabel>
                     <FormControl>
-                      <Select {...field} onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        {...field}
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Chọn giá khóa học" />
                         </SelectTrigger>
@@ -202,7 +235,10 @@ const UpdateCourse: React.FC<UpdateProps> = ({ data, isOpen, onClose }) => {
                   <FormItem>
                     <FormLabel>Đường dẫn video giới thiệu</FormLabel>
                     <FormControl>
-                      <Input placeholder="Nhập URL video giới thiệu" {...field} />
+                      <Input
+                        placeholder="Nhập URL video giới thiệu"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage className="text-[red]" />
                   </FormItem>
@@ -214,9 +250,15 @@ const UpdateCourse: React.FC<UpdateProps> = ({ data, isOpen, onClose }) => {
                 render={() => (
                   <FormItem>
                     <FormLabel>Hình ảnh khóa học</FormLabel>
-                    <div {...getRootProps({ className: "dropzone cursor-pointer w-[100px]" })}>
+                    <div
+                      {...getRootProps({
+                        className: "dropzone cursor-pointer w-[100px]",
+                      })}
+                    >
                       <input {...getInputProps()} />
-                      <p className="p-2 bg-black text-[#fff] w-[100px] cursor-pointer rounded-md">Thêm ảnh</p>
+                      <p className="p-2 bg-black text-[#fff] w-[100px] cursor-pointer rounded-md">
+                        Thêm ảnh
+                      </p>
                     </div>
                     {imagePreview && (
                       <div className="mt-4">
@@ -254,7 +296,13 @@ const UpdateCourse: React.FC<UpdateProps> = ({ data, isOpen, onClose }) => {
         </div>
         <SheetFooter>
           <SheetClose asChild>
-            <ButtonComponent type="submit">Save changes</ButtonComponent>
+            <ButtonComponent
+              type="submit"
+              onClick={form.handleSubmit(onSubmit)}
+
+            >
+              Chỉnh sửa
+            </ButtonComponent>
           </SheetClose>
         </SheetFooter>
       </SheetContent>
