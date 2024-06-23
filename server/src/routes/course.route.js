@@ -6,8 +6,8 @@ const router = express.Router();
 
 router.get('/all-courses', CourseController.index);
 router.get('/detail-courses/:slug', CourseController.get);
-router.post('/create-courses', CourseController.add);
-router.put('/update-courses/:id', CourseController.update);
-router.delete('/delete-courses/:id', CourseController.delete);
+router.post('/create-courses', AuthMiddleware.authAdmin, CourseController.add);
+router.put('/update-courses/:id', AuthMiddleware.authAdmin, CourseController.update);
+router.delete('/delete-courses/:id', AuthMiddleware.authAdmin, CourseController.delete);
 
 export default router;
