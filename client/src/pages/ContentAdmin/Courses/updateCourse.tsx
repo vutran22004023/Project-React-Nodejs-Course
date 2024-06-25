@@ -123,19 +123,6 @@ const UpdateCourse: React.FC<UpdateProps> = ({ data, isOpen, onClose }) => {
     control: form.control,
   });
 
-  // const onDrop = useCallback(
-  //   (acceptedFiles: any) => {
-  //     const file = acceptedFiles[0];
-  //     form.setValue("image", file);
-  //     setImagePreview(URL.createObjectURL(file));
-  //   },
-  //   [form]
-  // );
-
-  // const { getRootProps, getInputProps } = useDropzone({
-  //   onDrop,
-  //   accept: { "image/*": [] },
-  // });
   const handleImageUpload = (file: File) => {
     form.setValue("image", file);
     setImagePreview(URL.createObjectURL(file));
