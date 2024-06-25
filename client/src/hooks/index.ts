@@ -12,7 +12,7 @@ export const useCombinedData = (queryKey: string, fetcher: () => Promise<any>, o
 
   // Sử dụng TanStack Query để quản lý cache và state
   const { data: dataFromQuery, error: queryError, isLoading, refetch  } = useQuery({
-    queryKey,
+    queryKey: [],
     queryFn: fetcher,
     initialData: dataFromSWR,
     enabled: !!dataFromSWR, // Chỉ chạy query nếu dataFromSWR có dữ liệu

@@ -17,7 +17,7 @@ const getAllUsers = async (limit, page, sort, filter) => {
       options.sort = { [sort[1]]: sort[0] };
     }
 
-    const allUsers = await UserModel.find(query, null, options);
+    const allUsers = await UserModel.find(query, null, options).select('-password').lean();
 
     return {
       status: 200,
@@ -148,10 +148,49 @@ const deleteManyUser = async (ids) => {
   }
 };
 
+const createUser = async (user) => {
+  try {
+    const { name, email, password } = user;
+    const hashedPassword = await bcrypt.hash(password, parseInt(process.env.SALT_ROUNDS));
+    const checkUser = await UserModel.findOne({
+      email: email,
+    });
+    if (checkUser !== null) {
+      return {
+        status: 'ERR',
+        message: 'Tài Khoản đã tồn tại',
+      };
+    }
+    const createdUser = await UserModel.create({
+      name,
+      email,
+      password: hashedPassword,
+    });
+    if (createdUser) {
+      return {
+        status: 200,
+        message: 'Tạo người dùng thành công',
+        data: {
+          ...createdUser._doc,
+          // password: 'not password',
+        },
+      };
+    } else {
+      throw new Error('Tạo người dùng thất bại.');
+    }
+  } catch (err) {
+    return {
+      status: 'ERR',
+      message: err,
+    };
+  }
+};
+
 export default {
   getAllUsers,
   getDetailUser,
   updateUser,
   deleteUser,
   deleteManyUser,
+  createUser,
 };

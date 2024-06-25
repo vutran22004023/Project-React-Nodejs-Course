@@ -9,5 +9,6 @@ router.get('/get-detail-user/:id', AuthMiddleware.authUser, UserController.getDe
 router.put('/update-user/:id', AuthMiddleware.authUser, UserController.updateUser);
 router.delete('/delete-user/:id', AuthMiddleware.authAdmin, UserController.deleteUser);
 router.post('/delete-many-user', AuthMiddleware.authAdmin, UserController.deleteManyUser);
+router.post('/create-user', AuthMiddleware.authAdmin, UserController.createUser);
 
 export default router;

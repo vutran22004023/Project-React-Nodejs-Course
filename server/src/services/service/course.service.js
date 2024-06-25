@@ -16,7 +16,7 @@ class CourseService {
       options.sort = { [sort[1]]: sort[0] };
     }
 
-    const allCourses = await CourseModel.find(query, null, options).select('-chapters').lean();
+    const allCourses = await CourseModel.find(query, null, options).lean();
 
     return {
       status: 200,
