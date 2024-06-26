@@ -145,7 +145,7 @@ export const PrivateAdminRoute: React.FC<PrivateAdminRouteProps> = ({ children }
       error('Bạn không phải quản trị viên');
       navigate('/');
     }
-  }, [navigate, user]);
+  }, [ user]);
   return <>{children}</>;
 }
 
@@ -153,11 +153,10 @@ export const PrivateUserRoute: React.FC<PrivateUserRouteProps> = ({ children }) 
   const navigate = useNavigate();
   const user = useSelector((state: RootState) => state.user);
   useEffect(() => {
-    console.log(user)
-    // if (!user?.access_Token || user?.status !== true) {
-    //   error('Bạn không có quyền truy cập');
-    //   navigate('/');
-    // }
+    if (!user?.access_Token || user?.status !== true) {
+      error('Bạn không có quyền truy cập');
+      navigate('/');
+    }
   }, [user,navigate]);
 
   return <>{children}</>;
