@@ -176,90 +176,92 @@ class PayMentController {
     res.json(result);
   }
 
-  async orderStatusZaloPay (req, res) {
+  async orderStatusZaloPay(req, res) {
     const app_trans_id = req.params.apptransid;
     const config = {
-        appid: "2554",
-        key1: "sdngKKJmqEMzvh5QQcdD2A9XBSKUNaYn",
-        key2: "trMrHtvjo6myautxDUiAcYsVtaeQ8nhf",
-        endpoint: "https://sandbox.zalopay.com.vn/v001/tpe/getstatusbyapptransid"
-      };
-      let postData = {
-        appid: config.appid,
-        apptransid: app_trans_id, // Input your apptransid
-    }
-    
-    let data = postData.appid + "|" + postData.apptransid + "|" + config.key1; // appid|apptransid|key1
-    postData.mac = CryptoJS.HmacSHA256(data, config.key1).toString();
-    
-    
-    let postConfig = {
-        method: 'post',
-        url: config.endpoint,
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        data: qs.stringify(postData)
+      appid: '2554',
+      key1: 'sdngKKJmqEMzvh5QQcdD2A9XBSKUNaYn',
+      key2: 'trMrHtvjo6myautxDUiAcYsVtaeQ8nhf',
+      endpoint: 'https://sandbox.zalopay.com.vn/v001/tpe/getstatusbyapptransid',
+    };
+    let postData = {
+      appid: config.appid,
+      apptransid: app_trans_id, // Input your apptransid
     };
 
-     try {
-      const result = await axios(postConfig)
+    let data = postData.appid + '|' + postData.apptransid + '|' + config.key1; // appid|apptransid|key1
+    postData.mac = CryptoJS.HmacSHA256(data, config.key1).toString();
+
+    let postConfig = {
+      method: 'post',
+      url: config.endpoint,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      data: qs.stringify(postData),
+    };
+
+    try {
+      const result = await axios(postConfig);
       return res.status(200).json(result.data);
-     } catch (error) {
+    } catch (error) {
       console.log(error.message);
-     }
+    }
   }
 
-  async transactionRefund (req, res) {
+  async transactionRefund(req, res) {
     const config = {
-        app_id: "2554",
-        key1: "sdngKKJmqEMzvh5QQcdD2A9XBSKUNaYn",
-        key2: "trMrHtvjo6myautxDUiAcYsVtaeQ8nhf",
-        endpoint: "https://sandbox.zalopay.com.vn/v001/tpe/partialrefund"
-      };
-      const timestamp = Date.now();
-      const uid = `${timestamp}${Math.floor(111 + Math.random() * 999)}`; // unique id
-      
-      let params = {
-        app_id: config.app_id,
-        mrefundid: `${moment().format('YYMMDD')}_${config.app_id}_${uid}`,
-        timestamp, // miliseconds
-        zptransid: '190508000000022',
-        amount: '50000',
-        description: 'ZaloPay Refund Demo',
-      };
-      
-      // appid|zptransid|amount|description|timestamp
-      let data = params.app_id + "|" + params.zptransid + "|" + params.amount + "|" + params.description + "|" + params.timestamp;
-      params.mac = CryptoJS.HmacSHA256(data, config.key1).toString();
-      
-    axios.post(config.endpoint, null, { params })
-        .then(res => console.log(res.data))
-        .catch(err => console.log(err));  
+      app_id: '2554',
+      key1: 'sdngKKJmqEMzvh5QQcdD2A9XBSKUNaYn',
+      key2: 'trMrHtvjo6myautxDUiAcYsVtaeQ8nhf',
+      endpoint: 'https://sandbox.zalopay.com.vn/v001/tpe/partialrefund',
+    };
+    const timestamp = Date.now();
+    const uid = `${timestamp}${Math.floor(111 + Math.random() * 999)}`; // unique id
+
+    let params = {
+      app_id: config.app_id,
+      mrefundid: `${moment().format('YYMMDD')}_${config.app_id}_${uid}`,
+      timestamp, // miliseconds
+      zptransid: '190508000000022',
+      amount: '50000',
+      description: 'ZaloPay Refund Demo',
+    };
+
+    // appid|zptransid|amount|description|timestamp
+    let data =
+      params.app_id + '|' + params.zptransid + '|' + params.amount + '|' + params.description + '|' + params.timestamp;
+    params.mac = CryptoJS.HmacSHA256(data, config.key1).toString();
+
+    axios
+      .post(config.endpoint, null, { params })
+      .then((res) => console.log(res.data))
+      .catch((err) => console.log(err));
   }
 
-  async transactionRefundStatus (req, res) {
+  async transactionRefundStatus(req, res) {
     const config = {
-        app_id: "2554",
-        key1: "sdngKKJmqEMzvh5QQcdD2A9XBSKUNaYn",
-        key2: "trMrHtvjo6myautxDUiAcYsVtaeQ8nhf",
-        endpoint: "https://sandbox.zalopay.com.vn/v001/tpe/getpartialrefundstatus"
-      };
-      const params = {
-        app_id: config.app_id,
-        timestamp: Date.now(), // miliseconds
-        mrefundid: "190312_553_123456", 
-      };
-      
-      const data = config.app_id + "|" + params.mrefundid + "|" + params.timestamp; // appid|mrefundid|timestamp
-      params.mac = CryptoJS.HmacSHA256(data, config.key1).toString()
-      
-      axios.get(config.endpoint, { params })
-        .then(res => console.log(res.data))
-        .catch(err => console.log(err));  
+      app_id: '2554',
+      key1: 'sdngKKJmqEMzvh5QQcdD2A9XBSKUNaYn',
+      key2: 'trMrHtvjo6myautxDUiAcYsVtaeQ8nhf',
+      endpoint: 'https://sandbox.zalopay.com.vn/v001/tpe/getpartialrefundstatus',
+    };
+    const params = {
+      app_id: config.app_id,
+      timestamp: Date.now(), // miliseconds
+      mrefundid: '190312_553_123456',
+    };
+
+    const data = config.app_id + '|' + params.mrefundid + '|' + params.timestamp; // appid|mrefundid|timestamp
+    params.mac = CryptoJS.HmacSHA256(data, config.key1).toString();
+
+    axios
+      .get(config.endpoint, { params })
+      .then((res) => console.log(res.data))
+      .catch((err) => console.log(err));
   }
 
-    // end api thanh toans zalopay
+  // end api thanh toans zalopay
 }
 
 export default new PayMentController();

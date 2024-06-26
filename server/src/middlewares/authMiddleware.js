@@ -50,7 +50,7 @@ class AuthMiddleware {
           message: 'Token không đúng',
         });
       }
-      if ((user?.isAdmin === true || user?.isAdmin === false) && user?.id === userId) {
+      if (user?.isAdmin === true || user?.id === userId) {
         req.user = user;
         next();
       } else {

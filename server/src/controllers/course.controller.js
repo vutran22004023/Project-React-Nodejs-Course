@@ -1,8 +1,10 @@
+import Course from '../models/course.model.js';
 import { CourseService } from '../services/index.js';
+import mongoose from 'mongoose';
 
 class CourseController {
   // Get all courses
-  async getAllCourses(req, res) {
+  async index(req, res) {
     try {
       const { limit, page, sort, filter } = req.query;
       const limitValue = parseInt(limit) || 30;
@@ -10,14 +12,14 @@ class CourseController {
       const sortArray = sort ? sort.split(':') : null;
       const filterArray = filter ? filter.split(':') : null;
       const result = await CourseService.getAllCourses(limitValue, pageValue, sortArray, filterArray);
-      return res.status(200).json(result);
+      res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
   }
 
   // Get course detail
-  async getDetailCourses(req, res) {
+  async get(req, res) {
     try {
       const { slug } = req.params;
       if (!slug)
@@ -25,80 +27,72 @@ class CourseController {
           status: 'ERR',
           message: 'Chưa điền đầy đủ thông tin ',
         });
-      const result = await CourseService.getDetaiCourse(slug)
-      return res.status(200).json(result);
+      const result = await CourseService.getDetaiCourse(slug);
+      res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
   }
 
   // Add course
-  async createCourse(req, res) {
+  async add(req, res) {
     try {
-      const { name, description, image, video, chapters, price, priceAmount } = req.body;
-      
-      // Check for missing fields
-      if (!name   || !video || !chapters || !price) {
-        return res.status(200).json({
-          status: 'ERR',
-          message: 'Chưa điền đầy đủ thông tin'
-        });
-      }
-      
       // Call the service method to create the course
       const result = await CourseService.createCourse(req.body);
-      
+
       // Send the result back to the client
-      return res.status(200).json(result);
+      res.status(200).json(result);
     } catch (error) {
-      // Handle general errors
-      return res.status(500).json({ message: error.message });
+      res.status(500).json({ message: error.message });
     }
   }
 
-    async updateCourses (req, res) {
-      try{
-        const { id } = req.params;
-        const data = req.body;
-        if(!id){
-          return res.status(200).json({
-            status: 'ERR',
-            message: 'Chưa truyền id'
-          })
-        }
-        if(!data) {
-          return res.status(200).json({
-            status: 'ERR',
-            message: 'Chưa truyền đầy đủ thông tin'
-          })
-        }
-
-        const result = await CourseService.updateCourses(id, data)
-        return res.status(200).json(result);
-      }catch (error) {
-        res.status(500).json({ message: error.message });
+  // Delete course
+  async delete(req, res) {
+    try {
+      const { id } = req.params;
+      if (!id)
+        return res.status(200).json({
+          status: 'ERR',
+          message: 'Chưa điền đầy đủ thông tin ',
+        });
+      if (!mongoose.isValidObjectId(id)) {
+        return res.status(200).json({ status: 'ERR', message: 'ID không hợp lệ!' });
       }
+      const result = await Course.findOneAndDelete({ _id: id });
+      if (!result)
+        res.status(404).json({
+          status: 404,
+          message: 'Không tìm thấy khóa học!',
+        });
+      else
+        res.status(200).json({
+          status: 200,
+          message: `Đã xóa khóa học id: ${result._id}`,
+        });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
     }
+  }
 
-
-    
-    async deleteCourses(req, res) {
-      try {
-        const { id } = req.params;
-        if(!id) {
-          return res.status(200).json({
-            status: 200,
-            message: 'Chưa điền thông tin'
-          })
-        }
-        
-        const result = await CourseService.deleteCourses(id);
-        return res.status(200).json(result);
-      } catch (error) {
-        res.status(500).json({ message: error.message });
+  // Update course
+  async update(req, res) {
+    try {
+      const { id } = req.params;
+      if (!mongoose.isValidObjectId(id)) {
+        return res.status(400).json({
+          status: 400,
+          message: 'ID không hợp lệ!',
+        });
       }
-    }
 
+      const result = await CourseService.updateCourse(id, req.body);
+
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
 }
 
 export default new CourseController();

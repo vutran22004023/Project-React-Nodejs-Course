@@ -1,4 +1,5 @@
-import {CourseModel} from '../../models/index.js';
+import { CourseModel } from '../../models/index.js';
+import mongoose from 'mongoose';
 
 class CourseService {
   async getAllCourses(limit, page, sort, filter) {
@@ -15,7 +16,7 @@ class CourseService {
       options.sort = { [sort[1]]: sort[0] };
     }
 
-    const allCourses = await CourseModel.find(query, null, options)
+    const allCourses = await CourseModel.find(query, null, options).lean();
 
     return {
       status: 200,
@@ -27,93 +28,183 @@ class CourseService {
     };
   }
 
-
   async getDetaiCourse(slug) {
-    try {
-      const checkCourse = await CourseModel.findOne({slug: slug})
-      if(!checkCourse) {
-        return {
-          status: 'ERR',
-          message: 'Khóa học không tồn tại'
-        }
-      }
+    const checkCourse = await CourseModel.findOne({ slug: slug });
+    if (!checkCourse) {
       return {
-        status: 200,
-        data: checkCourse,
-        message: 'Show dữ liệu thành công'
-      }
-    }catch (error) {
-      return res.status(500).json({ message: error.message });
+        status: 'ERR',
+        message: 'Khóa học không tồn tại',
+      };
     }
+    return {
+      status: 200,
+      data: checkCourse,
+      message: 'Show dữ liệu thành công',
+    };
   }
 
   async createCourse(data) {
     try {
-      const { name, description, image, video, chapters, price, priceAmount } = data;
-      
-      // Check if the course already exists
-      const checkCourse = await CourseModel.findOne({ name });
-      if (checkCourse) {
-        return {
-          status: "ERR",
-          message: 'Khóa học đã tồn tại'
-        };
-      }
-      
+      const result = this.dataHandle(data);
+      if (result) return result;
+
       // Create the new course
       const createCourse = await CourseModel.create(data);
       if (createCourse) {
         return {
           status: 200,
           data: createCourse,
-          message: 'Đã tạo khóa học thành công'
+          message: 'Đã tạo khóa học thành công',
         };
       }
-    } catch (error) {
-      // Throw the error to be handled by the controller
-      throw new Error(error.message);
+    } catch (err) {
+      return this.validator(err);
     }
   }
 
-  async updateCourses (id, data) {
-    try {
-      const checkCourses = await CourseModel.findOne({_id: id })
-      if(!checkCourses) {
-        return {
-          status: 'ERR',
-          message: 'Không tìn thấy id này'
-        }
-      }
-      const updateCourse = await CourseModel.findByIdAndUpdate(id, data,{ new: true })
-    return {
-      status: 200,
-      message: `Cập nhập thành công id : ${updateCourse._id}`,
-      data: {
-        ...updateCourse._doc,
-      }
-    }
-  }catch(error) {
-    throw new Error(error.message);
-  }
-  }
+  async updateCourse(courseId, reqData) {
+    const result = this.dataHandle(reqData);
+    if (result) return result;
 
-  async deleteCourses (id) {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
-      const checkCourses = await CourseModel.findById(id)
-      if(!checkCourses) {
+      const course = await CourseModel.findById(courseId).session(session);
+      if (!course) {
         return {
           status: 'ERR',
-          message: "Id này không tồn tại"
-        }
+          message: 'Không tìm thấy khóa học!',
+        };
       }
-       await CourseModel.findOneAndDelete({ _id: id });
+
+      course.chapters = course.chapters.filter((chapter) =>
+        reqData.chapters.some((reqChapter) => reqChapter._id && reqChapter._id === chapter._id.toString())
+      );
+
+      reqData.chapters.forEach((chapter) => {
+        const dbChapter = course.chapters.id(chapter._id);
+
+        if (dbChapter) {
+          dbChapter.namechapter = chapter.namechapter;
+
+          dbChapter.videos = dbChapter.videos.filter((video) =>
+            chapter.videos.some((reqVideo) => reqVideo._id && reqVideo._id === video._id.toString())
+          );
+
+          chapter.videos.forEach((reqVideo) => {
+            if (!reqVideo._id) dbChapter.videos.push(reqVideo);
+            else {
+              const dbVideo = dbChapter.videos.id(reqVideo._id);
+
+              if (dbVideo) {
+                dbVideo.childname = reqVideo.childname;
+                dbVideo.video = reqVideo.video;
+                dbVideo.time = reqVideo.time;
+                dbVideo.slug = reqVideo.slug;
+              }
+            }
+          });
+        } else {
+          course.chapters.push(chapter);
+        }
+      });
+
+      course.name = reqData.name;
+      course.description = reqData.description;
+      course.price = reqData.price;
+      course.image = reqData.image;
+      course.slug = reqData.slug;
+
+      await course.save({ session });
+      await session.commitTransaction();
+
+      const updatedCourse = await CourseModel.findById(courseId).lean();
       return {
         status: 200,
-        message: 'Đã xóa thành công '
-      }
-    }catch(error) {
-      throw new Error(error.message);
+        message: `Đã cập nhật khóa học id: ${updatedCourse._id}`,
+        data: updatedCourse,
+      };
+    } catch (err) {
+      await session.abortTransaction();
+      return this.validator(err);
+    } finally {
+      session.endSession();
     }
+  }
+
+  validator(err) {
+    if (err.name === 'ValidationError') {
+      const field = Object.keys(err.errors)[0];
+      const error = err.errors[field];
+      if (error.kind === 'unique') {
+        const readableField =
+          {
+            name: 'khóa học',
+            childname: 'video',
+          }[error.path] || error.path;
+        error.message = `Đã có ${readableField} "${error.value}"`;
+      }
+      return {
+        status: 'ERR',
+        message: error.message,
+      };
+    } else if (err.code == 11000) {
+      let key = Object.keys(err.keyValue)[0];
+      return {
+        status: 'ERR',
+        message: `Đã có slug "${err.keyValue[key]}"`,
+      };
+    } else throw err;
+  }
+
+  dataHandle(data) {
+    // Trim data
+    Object.keys(data).forEach((key) => {
+      if (typeof data[key] === 'string') {
+        data[key] = data[key].trim();
+      }
+    });
+    data.chapters.forEach((chapter) => {
+      chapter.videos.forEach((video) => {
+        Object.keys(video).forEach((key) => {
+          if (typeof video[key] === 'string') {
+            video[key] = video[key].trim();
+          }
+        });
+      });
+    });
+
+    // Check duplicate
+    const uniqueValues = new Set();
+    let hasDuplicate = false;
+    let emptySlug = false;
+
+    data.chapters.some((chapter) => {
+      for (let obj of chapter.videos) {
+        if (!obj.slug) {
+          emptySlug = true;
+          break;
+        } else if (uniqueValues.has(obj.slug)) {
+          hasDuplicate = true;
+          break;
+        }
+        uniqueValues.add(obj.slug);
+      }
+      return emptySlug || hasDuplicate;
+    });
+
+    if (emptySlug)
+      return {
+        status: 'ERR',
+        message: 'Thiếu slug video',
+      };
+    else if (hasDuplicate)
+      return {
+        status: 'ERR',
+        message: 'Slug video trong các chương bị trùng lặp',
+      };
+    else return 0;
   }
 }
 

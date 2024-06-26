@@ -91,6 +91,32 @@ class UserController {
       });
     }
   }
+
+  async createUser(req, res) {
+    try {
+      const { name, email, password } = req.body;
+      const mailformat = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
+      const isCheckEmail = mailformat.test(email);
+      if (!name || !email || !password) {
+        return res.status(200).json({
+          status: 'ERR',
+          message: 'Chưa điền đầy đủ thông tin',
+        });
+      } else if (!isCheckEmail) {
+        return res.status(200).json({
+          status: 'ERR',
+          message: 'Email nhập chưa đúng',
+        });
+      }
+
+      const response = await UserService.createUser(req.body);
+      return res.status(200).json(response);
+    } catch (err) {
+      return res.status(500).json({
+        message: err,
+      });
+    }
+  }
 }
 
 export default new UserController();

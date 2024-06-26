@@ -1,21 +1,22 @@
 import mongoose from 'mongoose';
+import uniqueValidator from 'mongoose-unique-validator';
 
 const videoSchema = new mongoose.Schema(
   {
     childname: {
       type: String,
-      maxLength: 255,
-      required: true,
-    },
-    slug: {
-      type: String,
+      maxLength: [255, 'Tiêu đề video quá dài'],
+      required: [true, 'Chưa có tiêu đề video'],
     },
     video: {
       type: String,
-      required: true,
+      required: [true, 'Chưa có đường dẫn video'],
     },
-    time: {
+    time: { type: String, default: null },
+    slug: {
       type: String,
+      unique: true,
+      required: true,
     },
   },
   {
@@ -27,8 +28,8 @@ const chapterSchema = new mongoose.Schema(
   {
     namechapter: {
       type: String,
-      maxLength: 255,
-      required: true,
+      maxLength: [255, 'Tiêu đề chương quá dài'],
+      required: [true, 'Chưa có tiêu đề chương'],
     },
     videos: [videoSchema],
   },
@@ -41,18 +42,16 @@ const courseSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      maxLength: 255,
-      required: true,
-      unique: true, // Ensuring course names are unique
-    },
-    slug: {
-      type: String,
+      maxLength: [255, 'Tiêu đề khóa học quá dài'],
+      required: [true, 'Chưa có tiêu đề khóa học'],
     },
     description: {
       type: String,
+      required: [true, 'Chưa có mô tả khóa học'],
     },
     image: {
       type: String,
+      maxLength: [255, 'Đường dẫn hình ảnh vượt quá 255 ký tự'],
       default: null,
     },
     video: {
@@ -62,14 +61,22 @@ const courseSchema = new mongoose.Schema(
     chapters: [chapterSchema],
     price: {
       type: String,
-      required: true,
-      enum: ['free', 'paid'],
+      required: [true, 'Chưa chọn loại khóa học'],
+      enum: { values: ['free', 'paid'], message: 'Loại khóa học chỉ cho phép giá trị free hoặc paid' },
     },
     priceAmount: {
       type: Number,
-      required: function () {
-        return this.price === 'paid';
-      },
+      required: [
+        function () {
+          return this.price === 'paid';
+        },
+        'Chưa có số tiền',
+      ],
+    },
+    slug: {
+      type: String,
+      unique: true,
+      required: [true, 'Chưa có slug của khóa học'],
     },
   },
   {
@@ -77,5 +84,6 @@ const courseSchema = new mongoose.Schema(
   }
 );
 
-const Course = mongoose.model('Course', courseSchema);
-export default Course;
+mongoose.plugin(uniqueValidator);
+
+export default mongoose.model('Course', courseSchema);

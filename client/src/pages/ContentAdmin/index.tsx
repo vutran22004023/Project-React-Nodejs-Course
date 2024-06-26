@@ -19,6 +19,8 @@ export default function Index({
       ? "information"
       : path.includes("/admin/courses")
       ? "courses"
+      : path.includes("/admin/users")
+      ? "users"
       : "";
   return (
     <>

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {Link} from 'react-router-dom'
-import { Home,LibraryBig, BookOpenText, LayoutDashboard ,SquareLibrary    } from 'lucide-react';
+import { Home,LibraryBig, BookOpenText, LayoutDashboard ,SquareLibrary, Users   } from 'lucide-react';
 interface SidebarProps {
   className?: string;
   activePage: string;
@@ -12,6 +12,7 @@ export default function SidebarAdmin({ className, activePage }: SidebarProps) {
     { name: "Dashboard", href: "/admin/dash-board",icon:LayoutDashboard, current: activePage === "dashboard" },
     { name: "Thông tin pages", href: "/admin/information-page",icon:SquareLibrary, current: activePage === "information" },
     { name: "Khóa học", href: "/admin/courses",icon:BookOpenText, current: activePage === "courses" },
+    { name: "Người dùng", href: "/admin/users",icon:Users, current: activePage === "users" },
   ]);
 
   const handleItemClick = (index : any) => {
