@@ -41,6 +41,9 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { imageDb } from '@/firebase/config';
 import { v4 } from 'uuid';
 import ImageUpload from '@/components/UpLoadImgComponent/ImageUpload';
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "@/redux/store";
+import slugify from 'slugify'
 interface UpdateProps {
   data: any;
   isOpen: boolean;
@@ -55,8 +58,15 @@ interface IProp {
 }
 
 const generateSlug = (str: string) => {
-  return str
-    .toLowerCase()
+  // Chuyển đổi các ký tự tiếng Việt sang không dấu
+  const normalizedStr = slugify(str, {
+    lower: true,
+    locale: 'vi',
+    remove: /[*+~.()'"!:@]/g
+  });
+
+  // Thay thế các ký tự không phải là a-z0-9 bằng dấu gạch ngang
+  return normalizedStr
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 };
@@ -90,8 +100,9 @@ const courseFormSchema = z.object({
 type CourseFormValues = z.infer<typeof courseFormSchema>;
 
 const UpdateCourse: React.FC<UpdateProps> = ({ data, isOpen, onClose }) => {
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const user = useSelector((state: RootState) => state.user);
   const form = useForm<CourseFormValues>({
     resolver: zodResolver(courseFormSchema),
     defaultValues: {
@@ -135,7 +146,8 @@ const UpdateCourse: React.FC<UpdateProps> = ({ data, isOpen, onClose }) => {
       const url = await getDownloadURL(snapshot.ref);
       dataForm.image = url; // replace the File object with the URL string
     }
-    const res = await CourseService.UpdateCourse(data._id, dataForm)
+    const access_Token = user?.access_Token;
+    const res = await CourseService.UpdateCourse(data._id, dataForm,access_Token)
     return res
   })
 

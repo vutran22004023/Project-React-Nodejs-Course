@@ -27,7 +27,7 @@ type DataLogin = {
   access_Token?: string;
   message?: string
 };
-export default function Login() {
+export default function Login(style : any) {
   const navigate = useNavigate();
   const [isModalInputLogin, setIsModalInputLogin] = useState(true);
   const [isModalForgotPass, setIsModalForgotPass] = useState(false);
@@ -125,8 +125,8 @@ export default function Login() {
     <ModalComponent
       triggerContent={
         <Button
-          className="bg-gray-300 text-black hover:bg-gray-400"
-          style={{ borderRadius: "20px" }}
+        className="bg-gray-300 text-black hover:bg-gray-400 "
+        style={{ borderRadius: "20px", ...style, }}
         >
           Đăng nhập / Đăng ký
         </Button>

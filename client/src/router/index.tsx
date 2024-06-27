@@ -33,7 +33,7 @@ const App = () => {
               <Route index element={<HomePage />} />
               <Route path="/learning-paths" element={<RoutePage />} />
               <Route path="blog" element={<BlogPage />} />
-              <Route path="/courses-not-login" element={<CoursesNotLogin />} />
+              <Route path="/courses-not-login/:slug" element={<CoursesNotLogin />} />
             </Route>
             <Route path="/" element={<LayoutPageHome isSidebarVisible={false} isHeaderVisible={true} />}>
               <Route path="blog/blog-detail" element={<BlogPageDetail />} />
@@ -47,7 +47,7 @@ const App = () => {
               <Route path="/posts-blog" index element={<PostsBlog />} />
             </Route>
             <Route path="/" element={<CoursesLoginLayout isHeaderVisible={true} />}>
-              <Route path="courses-login" index element={<CoursesLoginPage />} />
+              <Route path="courses-login/:slug" index element={<CoursesLoginPage />} />
             </Route>
             <Route path="/admin" element={<PrivateAdminRoute><AdminLayout isSidebarVisible={true} isHeaderVisible={true} /></PrivateAdminRoute>}>
               <Route path="dash-board" index element={<DashBoardAdmin />} />

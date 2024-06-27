@@ -7,7 +7,10 @@ import {
 } from "@/components/ui/accordion";
 import ButtonComponment from "@/components/ButtonComponent/Button";
 import { ArrowBigLeft ,ArrowBigRight } from 'lucide-react';
+import { useParams } from 'react-router-dom';
 export default function CourseLogin() {
+  const {slug} = useParams()
+  console.log(slug)
   return (
     <div className="flex mt-[15px] ">
       <div className="w-[70%] ">

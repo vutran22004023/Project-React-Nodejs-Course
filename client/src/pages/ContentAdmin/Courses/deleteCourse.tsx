@@ -15,12 +15,15 @@ import { useMutationHook } from '@/hooks/index';
 import { success, error } from '@/components/MessageComponents/Message'
 import { message } from 'antd';
 import {useCombinedData } from '@/hooks/index'
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "@/redux/store";
 interface DeleteProps {
     id: string;
     isOpen: boolean;
     onClose: () => void;
   }
 export default function deleteCourse({id,isOpen, onClose}: DeleteProps) {
+  const user = useSelector((state: RootState) => state.user);
   const getAllCourses = async() => {
     const res = await CourseService.GetAllCourses()
     return res
@@ -28,7 +31,8 @@ export default function deleteCourse({id,isOpen, onClose}: DeleteProps) {
   const fetchTableData =useCombinedData('dataAllCoursess', getAllCourses);
   const { data: _dataAllCourses, error: _Errdata, isLoading: _isLoadingAllCourses,refetch  } = fetchTableData
   const mutationDeleteCourses = useMutationHook(async(idDelete) => {
-    const res = await CourseService.DeleteCourses(idDelete)
+    const access_Token = user?.access_Token;
+    const res = await CourseService.DeleteCourses(idDelete,access_Token)
     return res
   })
 

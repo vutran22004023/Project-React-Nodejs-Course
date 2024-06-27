@@ -5,7 +5,7 @@ import { TokenMiddleware } from './index.js';
 class AuthMiddleware {
   authAdmin(req, res, next) {
     const authHeader = req.headers.token;
-
+    
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
         status: 'ERR',

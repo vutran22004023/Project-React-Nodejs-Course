@@ -33,7 +33,9 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { imageDb } from "@/firebase/config";
 import { v4 } from "uuid";
 import ImageUpload from "@/components/UpLoadImgComponent/ImageUpload";
-
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
+import slugify from 'slugify';
 interface IProp {
   chapter: any;
   chapterIndex: any;
@@ -43,8 +45,15 @@ interface IProp {
 
 // Function to generate slug
 const generateSlug = (str: string) => {
-  return str
-    .toLowerCase()
+  // Chuyển đổi các ký tự tiếng Việt sang không dấu
+  const normalizedStr = slugify(str, {
+    lower: true,
+    locale: 'vi',
+    remove: /[*+~.()'"!:@]/g
+  });
+
+  // Thay thế các ký tự không phải là a-z0-9 bằng dấu gạch ngang
+  return normalizedStr
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 };
@@ -94,6 +103,7 @@ const defaultValues: Partial<CourseFormValues> = {
 export default function NewCourses({ fetchTableData }: IfetchTable) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const user = useSelector((state: RootState) => state.user);
   const form = useForm<CourseFormValues>({
     resolver: zodResolver(courseFormSchema),
     defaultValues,
@@ -121,7 +131,8 @@ export default function NewCourses({ fetchTableData }: IfetchTable) {
       const url = await getDownloadURL(snapshot.ref);
       data.image = url; // replace the File object with the URL string
     }
-    const res = await CourseService.CreateCourses(data);
+    const access_Token = user?.access_Token;
+    const res = await CourseService.CreateCourses(data, access_Token);
     return res;
   });
 
