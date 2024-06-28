@@ -8,9 +8,36 @@ import {
 import ButtonComponment from "@/components/ButtonComponent/Button";
 import { ArrowBigLeft ,ArrowBigRight } from 'lucide-react';
 import { useParams } from 'react-router-dom';
+import { useMutationHook } from "@/hooks";
+import {CourseService} from '@/services/index'
+import { useEffect, useState } from "react";
+import Login_RegisterComponent from '@/components/Login-RegisterComponent/Login'
 export default function CourseLogin() {
   const {slug} = useParams()
-  console.log(slug)
+  const [dataCourseDetail, setDataCourseDetail] = useState();
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+
+
+  const mutationGetDetailCourse = useMutationHook(async (slug: any) => {
+    try {
+      const res = await CourseService.GetDetailCourses(slug);
+      return res.data;
+    } catch (err) {
+      console.log(err);
+    }
+  });
+
+  useEffect(() => {
+    mutationGetDetailCourse.mutate(slug, {
+      onSuccess: (data) => {
+        setDataCourseDetail(data);
+        setIsLoadingDetail(false);
+      },
+      onError: () => {
+        setIsLoadingDetail(false);
+      },
+    });
+  }, [slug]);
   return (
     <div className="flex mt-[15px] ">
       <div className="w-[70%] ">
@@ -46,30 +73,21 @@ export default function CourseLogin() {
           <div>Fanpage: https://www.facebook.com/f8vnofficial</div>
         </div>
       </div>
-      <div className="flex-1 p-3 border-l-2">
+      <div className="flex-1 p-3 border-l-2 mt-4">
         <div className="cactus-classical-serif-md mb-3">Nội dung khóa học</div>
         <Accordion type="single" collapsible className="w-full">
-          <AccordionItem value="item-1">
-            <AccordionTrigger>Is it accessible?</AccordionTrigger>
-            <AccordionContent>
-              Yes. It adheres to the WAI-ARIA design pattern.
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value="item-2">
-            <AccordionTrigger>Is it styled?</AccordionTrigger>
-            <AccordionContent>
-              Yes. It comes with default styles that matches the other
-              components&apos; aesthetic.
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value="item-3">
-            <AccordionTrigger>Is it animated?</AccordionTrigger>
-            <AccordionContent>
-              Yes. It's animated by default, but you can disable it if you
-              prefer.
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
+                {dataCourseDetail?.chapters?.map((chapter: any, index: number) => (
+                  <AccordionItem key={index} value={`item-${index}`}>
+                    <AccordionTrigger>{chapter.namechapter}</AccordionTrigger>
+                    {chapter.videos.map((video: any, vidIndex: number) => (
+                      <AccordionContent key={vidIndex} className="flex justify-between">
+                        <div>{video.childname}</div>
+                        <div>{video.time}</div>
+                      </AccordionContent>
+                    ))}
+                  </AccordionItem>
+                ))}
+              </Accordion>
       </div>
 
       <div className="fixed bottom-0 left-0 bg-[#dbdbdb] right-0 z-10 border-b p-3 flex  items-center">

@@ -10,4 +10,6 @@ router.post('/create-courses', AuthMiddleware.authAdmin, CourseController.add);
 router.put('/update-courses/:id', AuthMiddleware.authAdmin, CourseController.update);
 router.delete('/delete-courses/:id', AuthMiddleware.authAdmin, CourseController.delete);
 
+router.get('/video/:id', CourseController.video)
+
 export default router;
