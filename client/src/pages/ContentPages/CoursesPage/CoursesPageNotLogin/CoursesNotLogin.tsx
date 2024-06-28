@@ -6,7 +6,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import VideoYoutubeComponment from '@/components/VideoYoutubeComponment/VideoYoutube'
-import ButtonComponent from '@/components/ButtonComponent/Button'
 import {useParams} from 'react-router-dom'
 import { useMutationHook } from "@/hooks";
 import {CourseService} from '@/services/index'
@@ -48,8 +47,6 @@ export default function CoursesNotLogin() {
       },
     });
   }, [slug]);
-
-  console.log(dataCourseDetail);
 
    // Tính tổng số video và tổng thời gian
    const totalVideos = dataCourseDetail?.chapters?.reduce((total: number, chapter: any) => {
@@ -177,7 +174,7 @@ export default function CoursesNotLogin() {
            <div className="w-full flex justify-center mb-3">
              <VideoYoutubeComponment
                style={{ width: "400px", height: "200px", borderRadius: "20px" }}
-               src="https://www.youtube.com/embed/0SJE9dYdpps?si=WSJflYm741-XWeem"
+               src={dataCourseDetail?.video}
                title="YouTube video player"
              />
            </div>
