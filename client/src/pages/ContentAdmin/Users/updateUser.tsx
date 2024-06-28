@@ -35,7 +35,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 // import { useDropzone } from 'react-dropzone';
 // import { toast } from '@/components/ui/use-toast';
 import { UserService } from '@/services';
-import { useMutationHook } from '@/hooks';
+import { useCombinedData, useMutationHook } from '@/hooks';
 import { success, error } from '@/components/MessageComponents/Message';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { imageDb } from '@/firebase/config';
@@ -67,6 +67,14 @@ type UserFormValues = z.infer<typeof userFormSchema>;
 
 const UpdateUser: React.FC<UpdateProps> = ({ data, isOpen, onClose }) => {
   const user = useSelector((state: RootState) => state.user);
+
+  const getAllUsers = async () => {
+    const res = await UserService.GetAllUsers(user.access_Token);
+    return res;
+  };
+
+  const { refetch } = useCombinedData('dataAllUserss', getAllUsers);
+
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const form = useForm<UserFormValues>({
@@ -81,6 +89,7 @@ const UpdateUser: React.FC<UpdateProps> = ({ data, isOpen, onClose }) => {
   useEffect(() => {
     if (data.avatar) {
       setImagePreview(data.avatar);
+      data.avatar = undefined;
     }
     // Reset form values whenever `data` changes
     form.reset({
@@ -103,7 +112,7 @@ const UpdateUser: React.FC<UpdateProps> = ({ data, isOpen, onClose }) => {
     }
     const res = await UserService.UpdateUser(
       data._id,
-      user.access_Token,
+      user?.access_Token,
       dataForm
     );
     return res;
@@ -115,6 +124,7 @@ const UpdateUser: React.FC<UpdateProps> = ({ data, isOpen, onClose }) => {
     if (dataUpdateUsers?.status === 200) {
       success(`${dataUpdateUsers?.message}`);
       onClose();
+      refetch();
     } else if (dataUpdateUsers?.status === 'ERR') {
       error(`${dataUpdateUsers?.message}`);
     }
@@ -252,17 +262,17 @@ const UpdateUser: React.FC<UpdateProps> = ({ data, isOpen, onClose }) => {
               )}
             </form>
           </Form>
+          <SheetFooter>
+            <SheetClose asChild>
+              <ButtonComponent
+                type='submit'
+                onClick={form.handleSubmit(onSubmit)}
+              >
+                Chỉnh sửa
+              </ButtonComponent>
+            </SheetClose>
+          </SheetFooter>
         </div>
-        <SheetFooter>
-          <SheetClose asChild>
-            <ButtonComponent
-              type='submit'
-              onClick={form.handleSubmit(onSubmit)}
-            >
-              Chỉnh sửa
-            </ButtonComponent>
-          </SheetClose>
-        </SheetFooter>
       </SheetContent>
     </Sheet>
   );
