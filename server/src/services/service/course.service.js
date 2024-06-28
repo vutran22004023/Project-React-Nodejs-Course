@@ -1,5 +1,9 @@
 import { CourseModel } from '../../models/index.js';
 import mongoose from 'mongoose';
+import axios from 'axios';
+import 'dotenv/config';
+import moment from 'moment';
+import 'moment-duration-format';
 
 class CourseService {
   async getAllCourses(limit, page, sort, filter) {
@@ -29,7 +33,7 @@ class CourseService {
   }
 
   async getDetaiCourse(slug) {
-    const checkCourse = await CourseModel.findOne({ slug: slug });
+    const checkCourse = await CourseModel.findOne({ slug: slug }).lean();
     if (!checkCourse) {
       return {
         status: 'ERR',
@@ -63,7 +67,7 @@ class CourseService {
   }
 
   async updateCourse(courseId, reqData) {
-    const result = this.dataHandle(reqData);
+    const result = await this.dataHandle(reqData);
     if (result) return result;
 
     const session = await mongoose.startSession();
@@ -158,24 +162,35 @@ class CourseService {
     } else throw err;
   }
 
-  dataHandle(data) {
+  async dataHandle(data) {
     // Trim data
     Object.keys(data).forEach((key) => {
       if (typeof data[key] === 'string') {
         data[key] = data[key].trim();
       }
     });
-    data.chapters.forEach((chapter) => {
-      chapter.videos.forEach((video) => {
+
+    for (const chapter of data.chapters) {
+      for (const video of chapter.videos) {
         Object.keys(video).forEach((key) => {
           if (typeof video[key] === 'string') {
             video[key] = video[key].trim();
           }
         });
-      });
-    });
 
-    // Check duplicate
+        // Set video time and handle video link
+        if (video.video) {
+          const regex = /(?<=embed\/|watch\?v=)[^?]*/;
+          const match = video.video.match(regex);
+          if (match[0]) {
+            video.video = `https://www.youtube.com/embed/${match[0]}`;
+            video.time = await this.getVideoDuration(match[0]);
+          }
+        }
+      }
+    }
+
+    // Check duplicate and empty video slug
     const uniqueValues = new Set();
     let hasDuplicate = false;
     let emptySlug = false;
@@ -205,6 +220,22 @@ class CourseService {
         message: 'Slug video trong các chương bị trùng lặp',
       };
     else return 0;
+  }
+
+  async getVideoDuration(id) {
+    try {
+      const apiKey = process.env.ID_YOUTUBE;
+      const url = `https://www.googleapis.com/youtube/v3/videos?id=${id}&part=contentDetails&key=${apiKey}`;
+
+      const res = await axios.get(url);
+      let duration = res.data.items[0]?.contentDetails.duration;
+      if (!duration) return null;
+      duration = moment.duration(duration).format('hh:mm:ss');
+      return duration;
+    } catch (err) {
+      console.log('CourseService ~ axios.get ~ err:', err);
+      return null;
+    }
   }
 }
 
