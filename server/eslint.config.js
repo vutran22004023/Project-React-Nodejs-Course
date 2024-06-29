@@ -11,9 +11,6 @@ export default [
         process: 'readonly',
       },
     },
-    rules: {
-      'prettier/prettier': 'warn',
-    },
   },
   pluginJs.configs.recommended,
   eslintPluginPrettier,

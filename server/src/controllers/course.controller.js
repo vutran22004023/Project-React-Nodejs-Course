@@ -2,8 +2,8 @@ import Course from '../models/course.model.js';
 import { CourseService } from '../services/index.js';
 import mongoose from 'mongoose';
 import * as dotenv from 'dotenv';
-import axios from 'axios';
 dotenv.config();
+
 class CourseController {
   // Get all courses
   async index(req, res) {
@@ -93,38 +93,6 @@ class CourseController {
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ message: error.message });
-    }
-  }
-
-  async video(req,res) {
-    try {
-      const { id } = req.params;
-      const apiKey = process.env.ID_YOUTUBE
-      if(!id) {
-        return res.status(200).json({
-          status: 'ERR',
-          message: 'ID không hợp lệ!',
-        });
-      }
-      console.log(id, apiKey)
-      const url = `https://www.googleapis.com/youtube/v3/videos?id=${id}&part=contentDetails&key=${apiKey}`;
-
-      const response = await axios.get(url);
-      if (!response.data.items || response.data.items.length === 0) {
-        return res.status(404).json({
-          status: 'ERR',
-          message: 'Video not found or API key invalid.',
-        });
-      }
-      const duration = response.data.items[0].contentDetails.duration;
-      return res.status(200).json({
-        status: 'OK',
-        duration: duration,
-      });
-
-    }catch (error) {
-      console.error('Error fetching video details:', error);
-      return null;
     }
   }
 }
