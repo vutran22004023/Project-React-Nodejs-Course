@@ -82,6 +82,7 @@ class CourseService {
         };
       }
 
+      // Handle when delete chapters
       course.chapters = course.chapters.filter((chapter) =>
         reqData.chapters.some((reqChapter) => reqChapter._id && reqChapter._id === chapter._id.toString())
       );
@@ -89,16 +90,20 @@ class CourseService {
       reqData.chapters.forEach((chapter) => {
         const dbChapter = course.chapters.id(chapter._id);
 
+        // Update existed chapters
         if (dbChapter) {
           dbChapter.namechapter = chapter.namechapter;
 
+          // Handle when delete videos
           dbChapter.videos = dbChapter.videos.filter((video) =>
             chapter.videos.some((reqVideo) => reqVideo._id && reqVideo._id === video._id.toString())
           );
 
           chapter.videos.forEach((reqVideo) => {
+            // Add new videos
             if (!reqVideo._id) dbChapter.videos.push(reqVideo);
             else {
+              // Update existed videos
               const dbVideo = dbChapter.videos.id(reqVideo._id);
 
               if (dbVideo) {
@@ -110,13 +115,16 @@ class CourseService {
             }
           });
         } else {
+          // Add new chapters
           course.chapters.push(chapter);
         }
       });
 
+      // Update course
       course.name = reqData.name;
       course.description = reqData.description;
       course.price = reqData.price;
+      course.priceAmount = reqData.priceAmount;
       course.image = reqData.image;
       course.slug = reqData.slug;
 
@@ -182,7 +190,7 @@ class CourseService {
         if (video.video) {
           const regex = /(?<=embed\/|watch\?v=)[^?]*/;
           const match = video.video.match(regex);
-          if (match[0]) {
+          if (Array.isArray(match) && match[0]) {
             video.video = `https://www.youtube.com/embed/${match[0]}`;
             video.time = await this.getVideoDuration(match[0]);
           }
