@@ -39,7 +39,7 @@ const VideoYoutubeComponent: React.FC<YouTubeComponentProps> = ({ src, title, st
         intervalRef.current = setInterval(() => {
           const currentTime = playerRef.current.getCurrentTime();
           setCurrentTime(currentTime);
-          dispatch(timeVideo({ time: formatTime(currentTime) }));
+          dispatch(timeVideo({ time: formatTime(currentTime), isPlaying: true }));
         }, 1000);
       }
     } else {
@@ -50,7 +50,7 @@ const VideoYoutubeComponent: React.FC<YouTubeComponentProps> = ({ src, title, st
       if (event.data === YouTube.PlayerState.PAUSED || event.data === YouTube.PlayerState.ENDED) {
         const currentTime = playerRef.current.getCurrentTime();
         setCurrentTime(currentTime);
-        dispatch(timeVideo({ time: formatTime(currentTime) }));
+        dispatch(timeVideo({ time: formatTime(currentTime), isPlaying: false }));
       }
     }
   };

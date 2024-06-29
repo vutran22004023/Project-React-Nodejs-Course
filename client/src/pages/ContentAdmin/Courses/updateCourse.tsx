@@ -74,7 +74,6 @@ const generateSlug = (str: string) => {
 const videoSchema = z.object({
   childname: z.string().min(1, "Vui lòng nhập tên video"),
   video: z.string().url("Vui lòng nhập URL hợp lệ"),
-  time: z.string().optional(),
   slug: z.string().optional(),
 });
 
@@ -388,19 +387,6 @@ function ChapterField({
               </FormItem>
             )}
           />
-          <FormField
-            control={control}
-            name={`chapters.${chapterIndex}.videos.${videoIndex}.time`}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Thời gian</FormLabel>
-                <FormControl>
-                  <Input placeholder="Nhập thời gian video" {...field} />
-                </FormControl>
-                <FormMessage className="text-[red]" />
-              </FormItem>
-            )}
-          />
         </div>
       ))}
       <ButtonComponent
@@ -408,7 +394,7 @@ function ChapterField({
         variant="outline"
         size="sm"
         className="mt-2 w-[100px]"
-        onClick={() => appendVideo({ childname: "", video: "", time: "" })}
+        onClick={() => appendVideo({ childname: "", video: "" })}
       >
         Thêm video
       </ButtonComponent>

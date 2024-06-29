@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
     time: '',
+    isPlaying: false,
 };
 
 const timeSlice = createSlice({
@@ -9,8 +10,9 @@ const timeSlice = createSlice({
   initialState,
   reducers: {
     timeVideo: (state, { payload }) => {
-      const { time} = payload;
+      const { time, isPlaying} = payload;
       state.time = time || "";
+      state.isPlaying = isPlaying || false;
     },
   },
 });

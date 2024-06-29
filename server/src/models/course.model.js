@@ -15,7 +15,6 @@ const videoSchema = new mongoose.Schema(
     time: { type: String, default: null },
     slug: {
       type: String,
-      unique: true,
       required: true,
     },
   },
@@ -47,7 +46,7 @@ const courseSchema = new mongoose.Schema(
     },
     description: {
       type: String,
-      required: [true, 'Chưa có mô tả khóa học'],
+      // required: [true, 'Chưa có mô tả khóa học'],
     },
     image: {
       type: String,

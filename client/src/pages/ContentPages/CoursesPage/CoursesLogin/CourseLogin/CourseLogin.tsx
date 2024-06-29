@@ -10,16 +10,19 @@ import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { useMutationHook } from "@/hooks";
 import { CourseService } from "@/services/index";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 export default function CourseLogin() {
   const { slug } = useParams();
   const timeVideo = useSelector((state: RootState) => state.timesVideo);
+  
   const [dataCourseDetail, setDataCourseDetail] = useState();
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [dataVideo, setDataVideo] = useState()
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
+  const [playbackTime, setPlaybackTime] = useState<number>(0); // New state for tracking playback time
+  const playbackIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const mutationGetDetailCourse = useMutationHook(async (slug: any) => {
     try {
       const res = await CourseService.GetDetailCourses(slug);
@@ -44,7 +47,52 @@ export default function CourseLogin() {
     const video = dataCourseDetail?.chapters?.flatMap((chapter: any) => chapter.videos).find((video: any) => video.slug === slug);
     setDataVideo(video);
     setActiveSlug(slug);
+    setPlaybackTime(0);
+    if (playbackIntervalRef.current) {
+      clearInterval(playbackIntervalRef.current);
+      playbackIntervalRef.current = null;
+    }
   }
+
+  const timeStringToSeconds = (timeString: any) => {
+    if (typeof timeString !== "string") {
+      console.error("Invalid timeString:", timeString);
+      return 0;
+    }
+    const [minutes, seconds] = timeString.split(':').map(Number);
+    return minutes * 60 + seconds;
+  };
+
+  useEffect(() => {
+    if (dataVideo?.time && timeVideo.isPlaying) { // Check if isPlaying is true
+      const videoDurationInSeconds = timeStringToSeconds(dataVideo.time);
+      const halfDuration = videoDurationInSeconds / 2;
+      const incrementPlaybackTime = () => {
+        setPlaybackTime(prevTime => {
+          const newTime = prevTime + 1;
+          if (Math.abs(newTime - halfDuration) <= 1) {
+            console.log('Thành công khóa học');
+          }
+          return newTime;
+        });
+      };
+
+      playbackIntervalRef.current = setInterval(incrementPlaybackTime, 1000);
+
+      return () => {
+        if (playbackIntervalRef.current) {
+          clearInterval(playbackIntervalRef.current);
+        }
+      };
+    } else {
+      // Pause the playback if isPlaying is false or video data is not available
+      if (playbackIntervalRef.current) {
+        clearInterval(playbackIntervalRef.current);
+        playbackIntervalRef.current = null;
+      }
+    }
+  }, [timeVideo.isPlaying, dataVideo]);
+
 
 
   return (
