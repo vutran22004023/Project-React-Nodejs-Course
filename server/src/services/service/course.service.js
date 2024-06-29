@@ -49,7 +49,7 @@ class CourseService {
 
   async createCourse(data) {
     try {
-      const result = this.dataHandle(data);
+      const result = await this.dataHandle(data);
       if (result) return result;
 
       // Create the new course
