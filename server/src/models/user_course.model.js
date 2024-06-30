@@ -12,6 +12,7 @@ const videoStatusSchema = new mongoose.Schema(
       enum: ['not_started', 'in_progress', 'completed'],
       default: 'not_started',
     },
+    progress: { type: Number, default: 0 },
   },
   {
     timestamps: true,
