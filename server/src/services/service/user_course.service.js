@@ -2,7 +2,7 @@ import { CourseModel, UserCourseModel } from '../../models/index.js';
 import 'dotenv/config';
 
 class UserCourseService {
-  async createUserCourse(data) {
+  async startUserCourse(data) {
     try {
       const { userId, courseId } = data;
 
@@ -16,7 +16,16 @@ class UserCourseService {
       }
 
       // Kiểm tra xem người dùng đã học khóa học này chưa
-      let userCourse = await UserCourseModel.findOne({ userId, courseId }).lean();
+      let userCourse = await UserCourseModel.findOne({ userId, courseId })
+        .populate({
+          path: 'chapters.chapterId',
+          model: 'Course.chapters',
+          populate: {
+            path: 'videos.videoId',
+            model: 'Course.chapters.videos',
+          },
+        })
+        .lean();
 
       if (!userCourse) {
         // Khởi tạo dữ liệu nếu người dùng chưa học khóa học này
@@ -29,39 +38,21 @@ class UserCourseService {
         }));
 
         userCourse = await UserCourseModel.create({ userId, courseId, chapters });
+
+        return {
+          status: 200,
+          data: userCourse,
+          message: 'Đã lưu tiến độ học',
+        };
       }
+
       return {
         status: 200,
         data: userCourse,
-        message: 'Đã lưu tiến độ học',
+        message: 'Lấy tiến độ học thành công',
       };
     } catch (err) {
       return this.validator(err);
-    }
-  }
-
-  async getUserCourse(params) {
-    try {
-      const { userId, courseId } = params;
-
-      // Lấy thông tin khóa học của người dùng
-      const userCourse = await UserCourseModel.findOne({ userId, courseId }).populate({
-        path: 'chapters.chapterId',
-        model: 'Course.chapters',
-        populate: {
-          path: 'videos.videoId',
-          model: 'Course.chapters.videos',
-        },
-      });
-
-      if (!userCourse) {
-        return {
-          status: 'ERR',
-          message: 'Khóa học của người dùng không tồn tại',
-        };
-      }
-    } catch (err) {
-      this.validator(err);
     }
   }
 

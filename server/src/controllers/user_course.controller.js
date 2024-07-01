@@ -12,9 +12,9 @@ class UserCourseController {
   }
 
   // Start user-course
-  async createUserCourse(req, res) {
+  async startUserCourse(req, res) {
     try {
-      const result = await UserCourseService.createUserCourse(req.body);
+      const result = await UserCourseService.startUserCourse(req.body);
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ message: error.message });
