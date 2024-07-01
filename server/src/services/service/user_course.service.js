@@ -19,10 +19,10 @@ class UserCourseService {
       let userCourse = await UserCourseModel.findOne({ userId, courseId })
         .populate({
           path: 'chapters.chapterId',
-          model: 'Course.chapters',
+          model: 'Chapter',
           populate: {
             path: 'videos.videoId',
-            model: 'Course.chapters.videos',
+            model: 'Video',
           },
         })
         .lean();
@@ -31,9 +31,9 @@ class UserCourseService {
         // Khởi tạo dữ liệu nếu người dùng chưa học khóa học này
         const chapters = course.chapters.map((chapter) => ({
           chapterId: chapter._id,
-          videos: chapter.videos.map((video) => ({
+          videos: chapter.videos.map((video, index) => ({
             videoId: video._id,
-            status: 'not_started',
+            status: index === 0 ? 'completed' : 'not_started',
           })),
         }));
 

@@ -1,9 +1,15 @@
 import { useMutation,useQuery, UseQueryOptions  } from '@tanstack/react-query';
 import useSWR from 'swr';
-export const useMutationHook = <TData = unknown, TVariables = unknown>(fnCallBack: (variables: TVariables) => Promise<TData>) => {
-  return useMutation({ mutationFn: fnCallBack });
+export const useMutationHook = <TData = unknown, TVariables = unknown>(
+  fnCallBack: (variables: TVariables) => Promise<TData>
+) => {
+  return useMutation({
+    mutationFn: fnCallBack,
+    onError: (error) => {
+      console.error('Mutation error', error);
+    },
+  });
 };
-
 
 
 export const useCombinedData = (queryKey: string, fetcher: () => Promise<any>, options?: UseQueryOptions) => {

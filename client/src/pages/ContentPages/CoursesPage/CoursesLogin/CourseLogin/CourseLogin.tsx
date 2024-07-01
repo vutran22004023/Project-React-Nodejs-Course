@@ -9,14 +9,14 @@ import ButtonComponment from "@/components/ButtonComponent/Button";
 import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { useMutationHook } from "@/hooks";
-import { CourseService } from "@/services/index";
+import { CourseService, UserCourseService} from "@/services/index";
 import { useEffect, useState, useRef } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 export default function CourseLogin() {
   const { slug } = useParams();
   const timeVideo = useSelector((state: RootState) => state.timesVideo);
-  
+  const user = useSelector((state: RootState) => state.user);
   const [dataCourseDetail, setDataCourseDetail] = useState();
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [dataVideo, setDataVideo] = useState()
@@ -31,6 +31,24 @@ export default function CourseLogin() {
       console.log(err);
     }
   });
+
+  const mutationStateCouses = useMutationHook(async (data) => {
+    try {
+      const res = await UserCourseService.StartCourse(data);
+      console.log(res);
+      return res.data;
+    } catch (err) {
+      console.log(err);
+    }
+  })
+
+  const {data: dataStateCouses, isPending: __isPendingState} =mutationStateCouses
+  
+  useEffect(() => {
+    if(user.id || dataCourseDetail?._id) {
+      mutationStateCouses.mutate({userId:user.id,courseId: dataCourseDetail?._id })
+    }
+  },[dataCourseDetail])
 
   useEffect(() => {
     mutationGetDetailCourse.mutate(slug, {
