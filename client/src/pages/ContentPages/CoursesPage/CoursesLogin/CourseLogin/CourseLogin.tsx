@@ -46,6 +46,7 @@ export default function CourseLogin() {
   
   useEffect(() => {
     if(user.id || dataCourseDetail?._id) {
+      console.log(user.id)
       mutationStateCouses.mutate({userId:user.id,courseId: dataCourseDetail?._id })
     }
   },[dataCourseDetail])

@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
-
+import mongoose from 'mongoose';
 const initialState = {
-  id: "",
+  id: '',
   name: "",
   email: "",
   access_Token: "",
@@ -21,7 +21,7 @@ const userSlice = createSlice({
       state.email = email || "";
       state.access_Token = access_Token || "";
       state.avatar = avatar || "";
-      state.id = _id || "";
+      state.id = _id || '';
       state.isAdmin = isAdmin || false;
       state.status = status || false;
       state.password = 'not password'

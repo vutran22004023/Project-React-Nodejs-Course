@@ -1,13 +1,23 @@
-import { CourseModel, UserCourseModel } from '../../models/index.js';
+import { CourseModel } from '../../models/index.js';
 import 'dotenv/config';
-
+import mongoose from 'mongoose';
+import { UserCourse, ChapterStatus, VideoStatus } from '../../models/user_course.model.js';
+const { ObjectId } = mongoose.Types;
 class UserCourseService {
   async startUserCourse(data) {
     try {
-      const { userId, courseId } = data;
+      let { userId, courseId } = data;
 
-      // Kiểm tra xem khóa học có tồn tại không
-      const course = await CourseModel.findById(courseId);
+
+      const course = await CourseModel.findById(courseId).populate({
+        path: 'chapters',
+        model: 'Chapter',
+        populate: {
+          path: 'videos',
+          model: 'Video',
+        },
+      });
+
       if (!course) {
         return {
           status: 'ERR',
@@ -16,7 +26,7 @@ class UserCourseService {
       }
 
       // Kiểm tra xem người dùng đã học khóa học này chưa
-      let userCourse = await UserCourseModel.findOne({ userId, courseId })
+      let userCourse = await UserCourse.findOne({ userId, courseId })
         .populate({
           path: 'chapters.chapterId',
           model: 'Chapter',
@@ -26,6 +36,7 @@ class UserCourseService {
           },
         })
         .lean();
+      console.log(userCourse);
 
       if (!userCourse) {
         // Khởi tạo dữ liệu nếu người dùng chưa học khóa học này
@@ -36,8 +47,7 @@ class UserCourseService {
             status: index === 0 ? 'completed' : 'not_started',
           })),
         }));
-
-        userCourse = await UserCourseModel.create({ userId, courseId, chapters });
+        userCourse = await UserCourse.create({ userId, courseId, chapters });
 
         return {
           status: 200,
@@ -52,7 +62,11 @@ class UserCourseService {
         message: 'Lấy tiến độ học thành công',
       };
     } catch (err) {
-      return this.validator(err);
+      return {
+        status: 'ERR',
+        message: 'Đã xảy ra lỗi',
+        error: err.message,
+      };
     }
   }
 

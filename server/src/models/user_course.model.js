@@ -52,4 +52,8 @@ const userCourseSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model('UserCourse', userCourseSchema);
+const VideoStatus = mongoose.model('VideoStatus', videoStatusSchema);
+const ChapterStatus = mongoose.model('ChapterStatus', chapterStatusSchema);
+const UserCourse = mongoose.model('UserCourse', userCourseSchema);
+
+export { VideoStatus, ChapterStatus, UserCourse };
