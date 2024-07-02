@@ -23,72 +23,76 @@ class UserCourseService {
           message: 'Khóa học không tồn tại',
         };
       }
+      const checkUserCourse = await UserCourse.findOne({
+        userId: userId,
+        courseId: courseId
+      })
 
-      // Kiểm tra xem người dùng đã học khóa học này chưa
-      let userCourse = await UserCourse.aggregate([
-        {
-          $match: { userId: mongoose.Types.ObjectId(userId), courseId: mongoose.Types.ObjectId(courseId) },
-        },
-        {
-          $unwind: '$chapters',
-        },
-        {
-          $lookup: {
-            from: 'chapters', // Tên collection chapters
-            localField: 'chapters.chapterId',
-            foreignField: '_id',
-            as: 'chapterDetails',
-          },
-        },
-        {
-          $unwind: '$chapterDetails',
-        },
-        {
-          $lookup: {
-            from: 'videos',
-            localField: 'chapterDetails.videos._id',
-            foreignField: '_id',
-            as: 'chapterDetails.videosDetails',
-          },
-        },
-        {
-          $group: {
-            _id: '$_id',
-            userId: { $first: '$userId' },
-            courseId: { $first: '$courseId' },
-            chapters: {
-              $push: {
-                chapterDetails: '$chapterDetails',
-                videos: '$chapterDetails.videosDetails',
+            // Kiểm tra xem người dùng đã học khóa học này chưa
+            let userCourse = await UserCourse.aggregate([
+              {
+                $match: { userId: new mongoose.Types.ObjectId(userId), courseId: new mongoose.Types.ObjectId(courseId) },
               },
-            },
-          },
-        },
-        {
-          $lookup: {
-            from: 'courses', // Tên collection courses
-            localField: 'courseId',
-            foreignField: '_id',
-            as: 'courseDetails',
-          },
-        },
-        {
-          $unwind: '$courseDetails',
-        },
-        {
-          $project: {
-            _id: 1,
-            userId: 1,
-            courseId: 1,
-            chapters: 1,
-            courseDetails: 1,
-          },
-        },
-      ]);
-      console.log(userCourse);
+              {
+                $unwind: '$chapters',
+              },
+              {
+                $lookup: {
+                  from: 'chapters', // Tên collection chapters
+                  localField: 'chapters.chapterId',
+                  foreignField: '_id',
+                  as: 'chapterDetails',
+                },
+              },
+              {
+                $unwind: '$chapterDetails',
+              },
+              {
+                $lookup: {
+                  from: 'videos',
+                  localField: 'chapterDetails.videos._id',
+                  foreignField: '_id',
+                  as: 'chapterDetails.videosDetails',
+                },
+              },
+              {
+                $group: {
+                  _id: '$_id',
+                  userId: { $first: '$userId' },
+                  courseId: { $first: '$courseId' },
+                  chapters: {
+                    $push: {
+                      chapterDetails: '$chapterDetails',
+                      videos: '$chapterDetails.videosDetails',
+                    },
+                  },
+                },
+              },
+              {
+                $lookup: {
+                  from: 'courses', // Tên collection courses
+                  localField: 'courseId',
+                  foreignField: '_id',
+                  as: 'courseDetails',
+                },
+              },
+              {
+                $unwind: '$courseDetails',
+              },
+              {
+                $project: {
+                  _id: 1,
+                  userId: 1,
+                  courseId: 1,
+                  chapters: 1,
+                  courseDetails: 1,
+                },
+              },
+            ]);
 
-      if (!userCourse) {
+      if (!checkUserCourse) {
         // Khởi tạo dữ liệu nếu người dùng chưa học khóa học này
+        
         const chapters = course.chapters.map((chapter) => ({
           chapterId: chapter._id,
           videos: chapter.videos.map((video, index) => ({
@@ -107,7 +111,7 @@ class UserCourseService {
 
       return {
         status: 200,
-        data: userCourse,
+        data: checkUserCourse,
         message: 'Lấy tiến độ học thành công',
       };
     } catch (err) {

@@ -45,8 +45,7 @@ export default function CourseLogin() {
   const {data: dataStateCouses, isPending: __isPendingState} =mutationStateCouses
   
   useEffect(() => {
-    if(user.id || dataCourseDetail?._id) {
-      console.log(user.id)
+    if(user.id) {
       mutationStateCouses.mutate({userId:user.id,courseId: dataCourseDetail?._id })
     }
   },[dataCourseDetail])
