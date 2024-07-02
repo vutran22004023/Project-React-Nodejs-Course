@@ -4,7 +4,6 @@ const videoStatusSchema = new mongoose.Schema(
   {
     videoId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Course.videos',
       required: true,
     },
     status: {
@@ -23,7 +22,6 @@ const chapterStatusSchema = new mongoose.Schema(
   {
     chapterId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Course.chapters',
       required: true,
     },
     videos: [videoStatusSchema],

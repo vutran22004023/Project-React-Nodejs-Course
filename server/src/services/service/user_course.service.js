@@ -1,13 +1,12 @@
 import { CourseModel } from '../../models/index.js';
 import 'dotenv/config';
 import mongoose from 'mongoose';
-import { UserCourse, ChapterStatus, VideoStatus } from '../../models/user_course.model.js';
-const { ObjectId } = mongoose.Types;
+import { UserCourse } from '../../models/user_course.model.js';
+
 class UserCourseService {
   async startUserCourse(data) {
     try {
       let { userId, courseId } = data;
-
 
       const course = await CourseModel.findById(courseId).populate({
         path: 'chapters',
@@ -26,16 +25,66 @@ class UserCourseService {
       }
 
       // Kiểm tra xem người dùng đã học khóa học này chưa
-      let userCourse = await UserCourse.findOne({ userId, courseId })
-        .populate({
-          path: 'chapters.chapterId',
-          model: 'Chapter',
-          populate: {
-            path: 'videos.videoId',
-            model: 'Video',
+      let userCourse = await UserCourse.aggregate([
+        {
+          $match: { userId: mongoose.Types.ObjectId(userId), courseId: mongoose.Types.ObjectId(courseId) },
+        },
+        {
+          $unwind: '$chapters',
+        },
+        {
+          $lookup: {
+            from: 'chapters', // Tên collection chapters
+            localField: 'chapters.chapterId',
+            foreignField: '_id',
+            as: 'chapterDetails',
           },
-        })
-        .lean();
+        },
+        {
+          $unwind: '$chapterDetails',
+        },
+        {
+          $lookup: {
+            from: 'videos',
+            localField: 'chapterDetails.videos._id',
+            foreignField: '_id',
+            as: 'chapterDetails.videosDetails',
+          },
+        },
+        {
+          $group: {
+            _id: '$_id',
+            userId: { $first: '$userId' },
+            courseId: { $first: '$courseId' },
+            chapters: {
+              $push: {
+                chapterDetails: '$chapterDetails',
+                videos: '$chapterDetails.videosDetails',
+              },
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: 'courses', // Tên collection courses
+            localField: 'courseId',
+            foreignField: '_id',
+            as: 'courseDetails',
+          },
+        },
+        {
+          $unwind: '$courseDetails',
+        },
+        {
+          $project: {
+            _id: 1,
+            userId: 1,
+            courseId: 1,
+            chapters: 1,
+            courseDetails: 1,
+          },
+        },
+      ]);
       console.log(userCourse);
 
       if (!userCourse) {
@@ -75,7 +124,7 @@ class UserCourseService {
       const { userId, courseId, videoId } = data;
 
       // Tìm và cập nhật trạng thái video trong UserCourse
-      const userCourse = await UserCourseModel.findOneAndUpdate(
+      const userCourse = await UserCourse.findOneAndUpdate(
         { userId, courseId, 'chapters.videos.videoId': videoId },
         {
           $set: {
