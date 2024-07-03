@@ -27,7 +27,8 @@ export default function CourseLogin() {
   const [activeChapterIndex, setActiveChapterIndex] = useState<number | null>(null);
   const [playbackTime, setPlaybackTime] = useState<number>(0); // New state for tracking playback time
   const playbackIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const [mergedChapters, setMergedChapters] = useState<any>()
+  const initialActiveVideoRef = useRef<any>(null); 
+  // const [mergedChapters, setMergedChapters] = useState<any>()
   const mutationGetDetailCourse = useMutationHook(async (slug: any) => {
     try {
       const res = await CourseService.GetDetailCourses(slug);
@@ -127,46 +128,31 @@ export default function CourseLogin() {
 
 
 
-  // const mergedChapters = dataCourseDetail?.chapters?.map((chapter: any) => {
-  //   const userChapter = dataStateCourses?.chapters?.find((c:any) => {
-  //     return c.chapterId === chapter._id
-  //   });
-  //   if (userChapter) {
-  //     return {
-  //       ...chapter,
-  //       videos: chapter.videos.map((video: any) => {
-  //         const userVideo = userChapter.videos.find((v: any) => v.videoId === video._id);
-  //         return {
-  //           ...video,
-  //           status: userVideo?.status,
-  //         };
-  //       }),
-  //     };
-  //   }
-  //   return chapter;
-  // }) || [];
+  const mergedChapters = dataCourseDetail?.chapters?.map((chapter: any) => {
+    const userChapter = dataStateCourses?.chapters?.find((c:any) => {
+      return c.chapterId === chapter._id
+    });
+    if (userChapter) {
+      return {
+        ...chapter,
+        videos: chapter.videos.map((video: any) => {
+          const userVideo = userChapter.videos.find((v: any) => v.videoId === video._id);
+          return {
+            ...video,
+            status: userVideo?.status,
+          };
+        }),
+      };
+    }
+    return chapter;
+  }) || [];
 
   useEffect(() => {
-    if (dataCourseDetail && dataStateCourses) {
-      const mergedChapters = dataCourseDetail?.chapters?.map((chapter: any) => {
-        const userChapter = dataStateCourses?.chapters?.find((c: any) => c.chapterId === chapter._id);
-        if (userChapter) {
-          return {
-            ...chapter,
-            videos: chapter.videos.map((video: any) => {
-              const userVideo = userChapter.videos.find((v: any) => v.videoId === video._id);
-              return {
-                ...video,
-                status: userVideo?.status,
-              };
-            }),
-          };
-        }
-        return chapter;
-      });
-      setMergedChapters(mergedChapters)
+    if (mergedChapters && mergedChapters.length > 0 && !initialActiveVideoRef.current) {
       let inProgressVideo = null;
       let chapterIndex = null;
+
+      // Loop through each chapter to find the in-progress video
       for (let i = 0; i < mergedChapters.length; i++) {
         const chapter = mergedChapters[i];
         if (chapter.videos) {
@@ -177,20 +163,20 @@ export default function CourseLogin() {
           }
         }
       }
+
       if (inProgressVideo) {
+        initialActiveVideoRef.current = inProgressVideo; // Store the initially active video
         setDataVideo(inProgressVideo);
         setActiveSlug(inProgressVideo.slug);
-        setActiveChapterIndex(chapterIndex);
+        setActiveChapterIndex(chapterIndex); // Set the active chapter index
       }
     }
-  }, [dataCourseDetail, dataStateCourses]);
+  }, [mergedChapters]);
 
   const handleAccordionChange = (value: string) => {
     const chapterIndex = parseInt(value.split('-')[1]);
     setActiveChapterIndex(chapterIndex);
   };
-
-
 
   return (
     <div className="flex mt-[15px] ">
