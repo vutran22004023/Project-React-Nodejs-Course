@@ -6,13 +6,16 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import ButtonComponment from "@/components/ButtonComponent/Button";
-import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
+import { ArrowBigLeft, ArrowBigRight, CircleCheck ,Lock   } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { useMutationHook } from "@/hooks";
 import { CourseService, UserCourseService} from "@/services/index";
 import { useEffect, useState, useRef } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
+import { useQuery } from "@tanstack/react-query";
+import {CheckCircleFilled} from '@ant-design/icons'
+
 export default function CourseLogin() {
   const { slug } = useParams();
   const timeVideo = useSelector((state: RootState) => state.timesVideo);
@@ -32,23 +35,21 @@ export default function CourseLogin() {
     }
   });
 
-  const mutationStateCouses = useMutationHook(async (data) => {
+  const mutationStateCouses = async () => {
     try {
-      const res = await UserCourseService.StartCourse(data);
-      console.log(res);
+      const res = await UserCourseService.StartCourse({userId:user.id,courseId: dataCourseDetail?._id });
       return res.data;
     } catch (err) {
       console.log(err);
     }
-  })
+  }
 
-  const {data: dataStateCouses, isPending: __isPendingState} =mutationStateCouses
-  
-  useEffect(() => {
-    if(user.id) {
-      mutationStateCouses.mutate({userId:user.id,courseId: dataCourseDetail?._id })
-    }
-  },[dataCourseDetail])
+  const { data: dataStateCourses, isPending: __isPendingState } = useQuery({
+    queryKey: ["dataLUserCouse"],
+    queryFn: mutationStateCouses,
+    enabled: Boolean(user.id && dataCourseDetail?._id),
+  });
+  console.log(dataStateCourses);
 
   useEffect(() => {
     mutationGetDetailCourse.mutate(slug, {
@@ -112,6 +113,27 @@ export default function CourseLogin() {
   }, [timeVideo.isPlaying, dataVideo]);
 
 
+  const mergedChapters = dataCourseDetail?.chapters?.map((chapter: any) => {
+    const userChapter = dataStateCourses?.chapters?.find((c:any) => {
+      return c.chapterId === chapter._id
+    });
+    if (userChapter) {
+      return {
+        ...chapter,
+        videos: chapter.videos.map((video: any) => {
+          const userVideo = userChapter.videos.find((v: any) => v.videoId === video._id);
+          console.log(userVideo)
+          return {
+            ...video,
+            status: userVideo?.status,
+          };
+        }),
+      };
+    }
+    return chapter;
+  }) || [];
+
+
 
   return (
     <div className="flex mt-[15px] ">
@@ -152,7 +174,7 @@ export default function CourseLogin() {
           Nội dung khóa học
         </div>
         <Accordion type="single" collapsible className="w-full">
-          {dataCourseDetail?.chapters?.map((chapter: any, index: number) => (
+          {mergedChapters.map((chapter: any, index: number) => (
             <AccordionItem key={index} value={`item-${index}`}>
               <AccordionTrigger className="bg-slate-100 px-2 hover:bg-slate-200 ">
                 {chapter.namechapter}
@@ -160,14 +182,44 @@ export default function CourseLogin() {
               {chapter.videos.map((video: any, vidIndex: number) => (
                 <AccordionContent
                   key={vidIndex}
-                  className={`flex justify-between p-3 hover:bg-slate-100 cursor-pointer ${video.slug === activeSlug ? 'bg-slate-200' : ''}`}
-                  onClick={() => handleVideo(video?.slug)}
+                  className={`flex justify-between p-3
+                    ${video.slug === activeSlug ? "bg-slate-400" : ""}
+                    ${
+                      video.status === "not_started"
+                        ? "cursor-not-allowed"
+                        : "cursor-pointer"
+                    }
+                    ${
+                      video.status === "not_started" ? "" : "hover:bg-slate-300"
+                    }
+                    ${video.status === "not_started" ? "bg-slate-200" : ""}
+                    `}
+                  onClick={() => {
+                    if (video.status !== "not_started") {
+                      handleVideo(video?.slug);
+                    }
+                  }}
                 >
                   <div className="w-[80%] text-[14px]">
                     <div className="mb-1">{video.childname}</div>
                     <div>{video.time}</div>
                   </div>
-                  <div className="w-[20%]"></div>
+                  <div className="w-[20%] justify-center items-center">
+                    {video.status === "not_started" ? (
+                      <div className="flex justify-between mr-3">
+                        <div></div>
+                        <Lock size="20"/>
+                      </div>
+                    ) : video.status === "completed" ? (
+                      <div className="flex justify-between mr-3 text-center">
+                        <div></div>
+                          {/* <CircleCheck size="20" className="text-[#55c72b]" /> */}
+                          <CheckCircleFilled  className="text-[#55c72b] text-[20px]" />
+                      </div>
+                    ) : (
+                      []
+                    )}
+                  </div>
                 </AccordionContent>
               ))}
             </AccordionItem>

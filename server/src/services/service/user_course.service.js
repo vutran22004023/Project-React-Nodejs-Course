@@ -97,7 +97,7 @@ class UserCourseService {
           chapterId: chapter._id,
           videos: chapter.videos.map((video, index) => ({
             videoId: video._id,
-            status: index === 0 ? 'completed' : 'not_started',
+            status: index === 0 ? 'in_progress' : 'not_started',
           })),
         }));
         userCourse = await UserCourse.create({ userId, courseId, chapters });
