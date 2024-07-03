@@ -23,10 +23,12 @@ export default function CourseLogin() {
   const [dataCourseDetail, setDataCourseDetail] = useState();
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [dataVideo, setDataVideo] = useState()
+  console.log(dataVideo)
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
   const [activeChapterIndex, setActiveChapterIndex] = useState<number | null>(null);
   const [playbackTime, setPlaybackTime] = useState<number>(0); // New state for tracking playback time
   const playbackIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [disableNextLesson,setDisableNextLesson] = useState<any>()
   const initialActiveVideoRef = useRef<any>(null); 
   // const [mergedChapters, setMergedChapters] = useState<any>()
   const mutationGetDetailCourse = useMutationHook(async (slug: any) => {
@@ -178,6 +180,67 @@ export default function CourseLogin() {
     setActiveChapterIndex(chapterIndex);
   };
 
+  const handlePreviousLesson = () => {
+    if (activeChapterIndex !== null && activeSlug !== null) {
+      const currentChapter = mergedChapters[activeChapterIndex];
+      const currentIndex = currentChapter.videos.findIndex((video: any) => video.slug === activeSlug);
+  
+      if (currentIndex > 0) {
+        const previousVideo = currentChapter.videos[currentIndex - 1];
+        setActiveSlug(previousVideo.slug);
+        setDataVideo(previousVideo);
+        setDisableNextLesson(false);
+      } else if (activeChapterIndex > 0) {
+        const previousChapter = mergedChapters[activeChapterIndex - 1];
+        const lastVideoOfPreviousChapter = previousChapter.videos[previousChapter.videos.length - 1];
+        setActiveChapterIndex(activeChapterIndex - 1);
+        setActiveSlug(lastVideoOfPreviousChapter.slug);
+        setDataVideo(lastVideoOfPreviousChapter);
+        setDisableNextLesson(false);
+      }
+    }
+  };
+  
+  const handleNextLesson = () => {
+    if (activeChapterIndex !== null && activeSlug !== null) {
+      const currentChapter = mergedChapters[activeChapterIndex];
+      const currentIndex = currentChapter.videos.findIndex((video: any) => video.slug === activeSlug);
+  
+      // Find the next playable video
+      let nextVideoIndex = currentIndex + 1;
+      while (nextVideoIndex < currentChapter.videos.length) {
+        const nextVideo = currentChapter.videos[nextVideoIndex];
+        if (nextVideo.status !== "not_started") {
+          setActiveSlug(nextVideo.slug);
+          setDataVideo(nextVideo);
+          setDisableNextLesson(false); // Enable the button
+          return; // Exit the function after setting the next playable video
+        }
+        nextVideoIndex++;
+      }
+  
+      // If no playable video found in current chapter, move to next chapter
+      if (activeChapterIndex < mergedChapters.length - 1) {
+        let nextChapterIndex = activeChapterIndex + 1;
+        while (nextChapterIndex < mergedChapters.length) {
+          const nextChapter = mergedChapters[nextChapterIndex];
+          const firstVideoOfNextChapter = nextChapter.videos[0];
+          if (firstVideoOfNextChapter.status !== "not_started") {
+            setActiveChapterIndex(nextChapterIndex);
+            setActiveSlug(firstVideoOfNextChapter.slug);
+            setDataVideo(firstVideoOfNextChapter);
+            setDisableNextLesson(false); // Enable the button
+            return; // Exit the function after setting the first playable video of next chapter
+          }
+          nextChapterIndex++;
+        }
+      }
+  
+      // If all next videos are not started, disable the button
+      setDisableNextLesson(true);
+    }
+  };
+
   return (
     <div className="flex mt-[15px] ">
       <div className="w-[70%] ">
@@ -278,20 +341,22 @@ export default function CourseLogin() {
           <ButtonComponment
             className="w-[200px]"
             style={{ marginTop: "0", borderRadius: "10px", marginRight: "5px" }}
+            onClick={handlePreviousLesson}
           >
             <ArrowBigLeft />
             BÀI TRƯỚC
           </ButtonComponment>
           <ButtonComponment
-            className="w-[200px]"
+            className={`w-[200px] ${disableNextLesson ? "opacity-50 cursor-not-allowed " : ""}`}
             style={{ marginTop: "0", borderRadius: "10px" }}
+            onClick={handleNextLesson}
           >
             BÀI TIẾP THEO
             <ArrowBigRight />
           </ButtonComponment>
         </div>
         <div className="absolute top-1/2 right-0 transform -translate-y-1/2 mr-3 flex items-center">
-          <div>1. Khái niệm kỹ thuật cần biết</div>
+          <div>{dataVideo?.childname}</div>
           <ButtonComponment
             className="ml-2 p-3 w-[50px]"
             style={{ marginTop: "0", borderRadius: "60%" }}
@@ -299,6 +364,7 @@ export default function CourseLogin() {
             <ArrowBigRight />
           </ButtonComponment>
         </div>
+        
       </div>
     </div>
   );
