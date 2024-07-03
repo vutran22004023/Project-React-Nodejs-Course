@@ -24,8 +24,10 @@ export default function CourseLogin() {
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [dataVideo, setDataVideo] = useState()
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
+  const [activeChapterIndex, setActiveChapterIndex] = useState<number | null>(null);
   const [playbackTime, setPlaybackTime] = useState<number>(0); // New state for tracking playback time
   const playbackIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [mergedChapters, setMergedChapters] = useState<any>()
   const mutationGetDetailCourse = useMutationHook(async (slug: any) => {
     try {
       const res = await CourseService.GetDetailCourses(slug);
@@ -53,7 +55,6 @@ export default function CourseLogin() {
     }
   })
   const {data: dataUpdateCourse} = mutationUpdateCourse
-  console.log(dataUpdateCourse)
 
   const { data: dataStateCourses, isPending: __isPendingState } = useQuery({
     queryKey: ["dataLUserCouse"],
@@ -125,24 +126,69 @@ export default function CourseLogin() {
   }, [timeVideo.isPlaying, dataVideo]);
 
 
-  const mergedChapters = dataCourseDetail?.chapters?.map((chapter: any) => {
-    const userChapter = dataStateCourses?.chapters?.find((c:any) => {
-      return c.chapterId === chapter._id
-    });
-    if (userChapter) {
-      return {
-        ...chapter,
-        videos: chapter.videos.map((video: any) => {
-          const userVideo = userChapter.videos.find((v: any) => v.videoId === video._id);
+
+  // const mergedChapters = dataCourseDetail?.chapters?.map((chapter: any) => {
+  //   const userChapter = dataStateCourses?.chapters?.find((c:any) => {
+  //     return c.chapterId === chapter._id
+  //   });
+  //   if (userChapter) {
+  //     return {
+  //       ...chapter,
+  //       videos: chapter.videos.map((video: any) => {
+  //         const userVideo = userChapter.videos.find((v: any) => v.videoId === video._id);
+  //         return {
+  //           ...video,
+  //           status: userVideo?.status,
+  //         };
+  //       }),
+  //     };
+  //   }
+  //   return chapter;
+  // }) || [];
+
+  useEffect(() => {
+    if (dataCourseDetail && dataStateCourses) {
+      const mergedChapters = dataCourseDetail?.chapters?.map((chapter: any) => {
+        const userChapter = dataStateCourses?.chapters?.find((c: any) => c.chapterId === chapter._id);
+        if (userChapter) {
           return {
-            ...video,
-            status: userVideo?.status,
+            ...chapter,
+            videos: chapter.videos.map((video: any) => {
+              const userVideo = userChapter.videos.find((v: any) => v.videoId === video._id);
+              return {
+                ...video,
+                status: userVideo?.status,
+              };
+            }),
           };
-        }),
-      };
+        }
+        return chapter;
+      });
+      setMergedChapters(mergedChapters)
+      let inProgressVideo = null;
+      let chapterIndex = null;
+      for (let i = 0; i < mergedChapters.length; i++) {
+        const chapter = mergedChapters[i];
+        if (chapter.videos) {
+          inProgressVideo = chapter.videos.find((video: any) => video.status === "in_progress");
+          if (inProgressVideo) {
+            chapterIndex = i;
+            break; // Stop searching once the in-progress video is found
+          }
+        }
+      }
+      if (inProgressVideo) {
+        setDataVideo(inProgressVideo);
+        setActiveSlug(inProgressVideo.slug);
+        setActiveChapterIndex(chapterIndex);
+      }
     }
-    return chapter;
-  }) || [];
+  }, [dataCourseDetail, dataStateCourses]);
+
+  const handleAccordionChange = (value: string) => {
+    const chapterIndex = parseInt(value.split('-')[1]);
+    setActiveChapterIndex(chapterIndex);
+  };
 
 
 
@@ -184,8 +230,11 @@ export default function CourseLogin() {
         <div className="cactus-classical-serif-md mb-3 p-2">
           Nội dung khóa học
         </div>
-        <Accordion type="single" collapsible className="w-full">
-          {mergedChapters.map((chapter: any, index: number) => (
+        <Accordion type="single" collapsible className="w-full" 
+        value={activeChapterIndex !== null ? `item-${activeChapterIndex}` : undefined}
+        onValueChange={handleAccordionChange}
+        >
+          {mergedChapters?.map((chapter: any, index: number) => (
             <AccordionItem key={index} value={`item-${index}`}>
               <AccordionTrigger className="bg-slate-100 px-2 hover:bg-slate-200 ">
                 {chapter.namechapter}
