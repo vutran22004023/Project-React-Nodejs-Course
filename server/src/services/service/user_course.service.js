@@ -126,8 +126,8 @@ class UserCourseService {
   async updateProgress(data) {
     try {
       const { userId, courseId, videoId } = data;
-
-      // Tìm và cập nhật trạng thái video trong UserCourse
+  
+      // Tìm và cập nhật trạng thái video hiện tại thành 'completed'
       const userCourse = await UserCourse.findOneAndUpdate(
         { userId, courseId, 'chapters.videos.videoId': videoId },
         {
@@ -140,7 +140,7 @@ class UserCourseService {
           arrayFilters: [{ 'chapter.videos.videoId': videoId }, { 'video.videoId': videoId }],
         }
       );
-
+  
       if (!userCourse) {
         return {
           status: 'ERR',
@@ -148,13 +148,50 @@ class UserCourseService {
         };
       }
 
+      let nextVideo = null;
+    for (let chapter of userCourse.chapters) {
+      const currentVideoIndex = chapter.videos.findIndex(v => v.videoId.toString() === videoId.toString());
+      if (currentVideoIndex !== -1) {
+        const nextVideoIndex = currentVideoIndex + 1;
+        if (nextVideoIndex < chapter.videos.length) {
+          nextVideo = chapter.videos[nextVideoIndex];
+          break;
+        }
+      }
+    }
+    if (!nextVideo) {
       return {
         status: 200,
-        message: `Đã cập nhật tiến độ`,
+        message: 'Progress updated, but there is no next video',
         data: userCourse,
       };
+    }
+  
+      // Tìm video kế tiếp và cập nhật trạng thái của nó thành 'in_progress'
+      const updatedCourse = await UserCourse.findOneAndUpdate(
+        { userId, courseId, 'chapters.videos.videoId': nextVideo.videoId },
+        {
+          $set: {
+            'chapters.$[chapter].videos.$[video].status': 'in_progress',
+          },
+        },
+        {
+          new: true,
+          arrayFilters: [{ 'chapter.videos.videoId': nextVideo.videoId }, { 'video.videoId': nextVideo.videoId }],
+        }
+      );
+  
+      return {
+        status: 200,
+        message: 'Progress updated',
+        data: updatedCourse,
+      };
     } catch (err) {
-      return this.validator(err);
+      return {
+        status: 'ERR',
+        message: 'Đã xảy ra lỗi',
+        error: err.message,
+      };
     }
   }
 

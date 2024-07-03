@@ -10,9 +10,9 @@ const StartCourse = async(data: any) => {
     }
 }
 
-const UpdateUserCourse = async() => {
+const UpdateUserCourse = async(data: any) => {
     try{
-        const response: AxiosResponse = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/user-course/update-progress`);
+        const response: AxiosResponse = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/user-course/update-progress`, data);
         return response.data;
     }catch {
         throw new Error('Error get all courses');

@@ -44,12 +44,23 @@ export default function CourseLogin() {
     }
   }
 
+  const mutationUpdateCourse = useMutationHook(async(data) => {
+    try {
+      const res = await UserCourseService.UpdateUserCourse(data);
+      return res.data;
+    } catch (err) {
+      console.log(err);
+    }
+  })
+  const {data: dataUpdateCourse} = mutationUpdateCourse
+  console.log(dataUpdateCourse)
+
   const { data: dataStateCourses, isPending: __isPendingState } = useQuery({
     queryKey: ["dataLUserCouse"],
     queryFn: mutationStateCouses,
     enabled: Boolean(user.id && dataCourseDetail?._id),
+    refetchInterval: 5000,
   });
-  console.log(dataStateCourses);
 
   useEffect(() => {
     mutationGetDetailCourse.mutate(slug, {
@@ -91,6 +102,7 @@ export default function CourseLogin() {
           const newTime = prevTime + 1;
           if (Math.abs(newTime - halfDuration) <= 1) {
             console.log('Thành công khóa học');
+            mutationUpdateCourse.mutate({userId:user.id,courseId: dataCourseDetail?._id, videoId:dataVideo?._id })
           }
           return newTime;
         });
@@ -122,7 +134,6 @@ export default function CourseLogin() {
         ...chapter,
         videos: chapter.videos.map((video: any) => {
           const userVideo = userChapter.videos.find((v: any) => v.videoId === video._id);
-          console.log(userVideo)
           return {
             ...video,
             status: userVideo?.status,
