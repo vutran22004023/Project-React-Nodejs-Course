@@ -7,7 +7,7 @@ class UserCourseService {
   async startUserCourse(data) {
     try {
       let { userId, courseId } = data;
-
+  
       const course = await CourseModel.findById(courseId).populate({
         path: 'chapters',
         model: 'Chapter',
@@ -16,102 +16,74 @@ class UserCourseService {
           model: 'Video',
         },
       });
-
+  
       if (!course) {
         return {
           status: 'ERR',
           message: 'Khóa học không tồn tại',
         };
       }
+  
       const checkUserCourse = await UserCourse.findOne({
         userId: userId,
-        courseId: courseId
-      })
-
-            // Kiểm tra xem người dùng đã học khóa học này chưa
-            let userCourse = await UserCourse.aggregate([
-              {
-                $match: { userId: new mongoose.Types.ObjectId(userId), courseId: new mongoose.Types.ObjectId(courseId) },
-              },
-              {
-                $unwind: '$chapters',
-              },
-              {
-                $lookup: {
-                  from: 'chapters', // Tên collection chapters
-                  localField: 'chapters.chapterId',
-                  foreignField: '_id',
-                  as: 'chapterDetails',
-                },
-              },
-              {
-                $unwind: '$chapterDetails',
-              },
-              {
-                $lookup: {
-                  from: 'videos',
-                  localField: 'chapterDetails.videos._id',
-                  foreignField: '_id',
-                  as: 'chapterDetails.videosDetails',
-                },
-              },
-              {
-                $group: {
-                  _id: '$_id',
-                  userId: { $first: '$userId' },
-                  courseId: { $first: '$courseId' },
-                  chapters: {
-                    $push: {
-                      chapterDetails: '$chapterDetails',
-                      videos: '$chapterDetails.videosDetails',
-                    },
-                  },
-                },
-              },
-              {
-                $lookup: {
-                  from: 'courses', // Tên collection courses
-                  localField: 'courseId',
-                  foreignField: '_id',
-                  as: 'courseDetails',
-                },
-              },
-              {
-                $unwind: '$courseDetails',
-              },
-              {
-                $project: {
-                  _id: 1,
-                  userId: 1,
-                  courseId: 1,
-                  chapters: 1,
-                  courseDetails: 1,
-                },
-              },
-            ]);
-
+        courseId: courseId,
+      });
+  
       if (!checkUserCourse) {
         // Khởi tạo dữ liệu nếu người dùng chưa học khóa học này
-        
-        const chapters = course.chapters.map((chapter) => ({
+        const chapters = course.chapters.map((chapter, chapterIndex) => ({
           chapterId: chapter._id,
-          videos: chapter.videos.map((video, index) => ({
+          videos: chapter.videos.map((video, videoIndex) => ({
             videoId: video._id,
-            status: index === 0 ? 'in_progress' : 'not_started',
+            status: chapterIndex === 0 && videoIndex === 0 ? 'in_progress' : 'not_started',
           })),
         }));
-        userCourse = await UserCourse.create({ userId, courseId, chapters });
-
+  
+        const userCourse = await UserCourse.create({ userId, courseId, chapters });
+  
         return {
           status: 200,
           data: userCourse,
           message: 'Đã lưu tiến độ học',
         };
       }
-
+  
+      // Đồng bộ dữ liệu khi admin thêm chương hoặc video mới
+      const userCourse = await UserCourse.findOne({
+        userId: userId,
+        courseId: courseId,
+      });
+  
+      // Đồng bộ chương
+      course.chapters.forEach(courseChapter => {
+        const userChapter = userCourse.chapters.find(uc => uc.chapterId.equals(courseChapter._id));
+        if (!userChapter) {
+          userCourse.chapters.push({
+            chapterId: courseChapter._id,
+            videos: courseChapter.videos.map((video, videoIndex) => ({
+              videoId: video._id,
+              status: videoIndex === 0 ? 'in_progress' : 'not_started',
+            })),
+          });
+        } else {
+          // Đồng bộ video trong chương
+          courseChapter.videos.forEach(courseVideo => {
+            const userVideo = userChapter.videos.find(uv => uv.videoId.equals(courseVideo._id));
+            if (!userVideo) {
+              userChapter.videos.push({
+                videoId: courseVideo._id,
+                status: 'not_started',
+              });
+            }
+          });
+        }
+      });
+  
+      await userCourse.save();
+  
       return {
         status: 200,
-        data: checkUserCourse,
+        data: userCourse,
         message: 'Lấy tiến độ học thành công',
       };
     } catch (err) {
@@ -122,6 +94,7 @@ class UserCourseService {
       };
     }
   }
+  
 
   async updateProgress(data) {
     try {
@@ -149,16 +122,36 @@ class UserCourseService {
       }
 
       let nextVideo = null;
-    for (let chapter of userCourse.chapters) {
-      const currentVideoIndex = chapter.videos.findIndex(v => v.videoId.toString() === videoId.toString());
-      if (currentVideoIndex !== -1) {
-        const nextVideoIndex = currentVideoIndex + 1;
-        if (nextVideoIndex < chapter.videos.length) {
-          nextVideo = chapter.videos[nextVideoIndex];
-          break;
+      let chapterCompleted = false;
+  
+      // Kiểm tra xem tất cả các video trong chương hiện tại đã hoàn thành chưa
+      for (let chapter of userCourse.chapters) {
+        const currentVideoIndex = chapter.videos.findIndex(v => v.videoId.toString() === videoId.toString());
+        if (currentVideoIndex !== -1) {
+          const allVideosCompleted = chapter.videos.every(v => v.status === 'completed');
+          if (allVideosCompleted) {
+            chapterCompleted = true;
+          } else {
+            const nextVideoIndex = currentVideoIndex + 1;
+            if (nextVideoIndex < chapter.videos.length) {
+              nextVideo = chapter.videos[nextVideoIndex];
+            }
+            break;
+          }
         }
       }
-    }
+
+      if (chapterCompleted) {
+        // Chuyển sang chương tiếp theo và đặt video đầu tiên thành 'in_progress'
+        for (let i = 0; i < userCourse.chapters.length; i++) {
+          const chapter = userCourse.chapters[i];
+          const allVideosCompleted = chapter.videos.every(v => v.status === 'completed');
+          if (allVideosCompleted && i + 1 < userCourse.chapters.length) {
+            nextVideo = userCourse.chapters[i + 1].videos[0];
+            break;
+          }
+        }
+      }
     if (!nextVideo) {
       return {
         status: 200,
