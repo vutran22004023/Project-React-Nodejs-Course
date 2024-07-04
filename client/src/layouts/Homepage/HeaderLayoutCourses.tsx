@@ -11,22 +11,8 @@ import { RootState } from "@/redux/store";
 import { success, error, warning } from "@/components/MessageComponents/Message";
 
 export default function HeaderLayoutCourses() {
-  const [dataTotalVideo, setDataTotalVideo] = useState<any>({
-    total: 0,
-    completed: 0,
-    percent: 0,
-  })
+  
   const timeVideo = useSelector((state: RootState) => state.timesVideo);
-
-  useEffect(() => {
-    if(timeVideo) {
-      setDataTotalVideo({
-        total: timeVideo.totalVideo,
-        completed: timeVideo.totalcompletedVideo,
-        percent: timeVideo.percentCourse ?? 0,
-      })
-    }
-  },[timeVideo])
   return (
     <div className="fixed top-0 left-0 bg-[#fff] right-0 z-10 border-b p-3 flex justify-between items-center">
       <div className="flex  justify-center items-center">
@@ -38,8 +24,8 @@ export default function HeaderLayoutCourses() {
       </div>
       <div className="flex gap-4 items-center mr-3">
         <div className="flex  justify-center items-cente">
-          <Progress type="circle" percent={dataTotalVideo?.percent}  size={40} />
-          <div className="ml-1 mt-2">{dataTotalVideo?.completed}/{dataTotalVideo?.total} bài học</div>
+          <Progress type="circle" percent={timeVideo?.percentCourse}  size={40} />
+          <div className="ml-1 mt-2">{timeVideo?.totalcompletedVideo}/{timeVideo?.totalVideo} bài học</div>
         </div>
         <Link to="/my-courses" className="text-black">
           Chú thích

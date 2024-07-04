@@ -17,6 +17,9 @@ import { useQuery } from "@tanstack/react-query";
 import {CheckCircleFilled} from '@ant-design/icons'
 import { useDispatch } from "react-redux";
 import { totalVideo } from '@/redux/Slides/timeVideoSide';
+import WordPost from "@/components/WordPostComponment/wordPost";
+import { CSSTransition } from 'react-transition-group';
+import '../../../../../index.css'
 
 export default function CourseLogin() {
   const { slug } = useParams();
@@ -32,7 +35,7 @@ export default function CourseLogin() {
   const playbackIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [disableNextLesson,setDisableNextLesson] = useState<any>()
   const initialActiveVideoRef = useRef<any>(null); 
-  // const [mergedChapters, setMergedChapters] = useState<any>()
+  const [isModalOpenEdit, setIsModalOpenEdit] = useState(false)
   const mutationGetDetailCourse = useMutationHook(async (slug: any) => {
     try {
       const res = await CourseService.GetDetailCourses(slug);
@@ -263,6 +266,10 @@ export default function CourseLogin() {
       setDisableNextLesson(true);
     }
   };
+  
+  const handleOpenEditBlog = () => {
+    setIsModalOpenEdit(!isModalOpenEdit);
+  };
 
   return (
     <div className="flex mt-[15px] ">
@@ -285,6 +292,7 @@ export default function CourseLogin() {
             <ButtonComponment
               className="p-5 w-[200px]"
               style={{ marginTop: "0", borderRadius: "10px" }}
+              onClick={handleOpenEditBlog}
             >
               {" "}
               Thêm ghi chú
@@ -387,8 +395,37 @@ export default function CourseLogin() {
             <ArrowBigRight />
           </ButtonComponment>
         </div>
-        
       </div>
+      <CSSTransition
+        in={isModalOpenEdit}
+        timeout={300}
+        classNames="modal"
+        unmountOnExit
+      >
+         <div className="fixed bottom-0 left-0 bg-[#f4f4f4] right-0 z-10 border-b p-5 w-[69.5%] h-[290px] border-t border-black">
+          <div className="p-5 bg-[#fff] border  border-black rounded-xl h-[200px]">
+            <WordPost/>
+          </div>
+          <div className="flex justify-between">
+            <div ></div>
+            <div className="flex mt-5">
+            <ButtonComponment
+            className="ml-2 p-3 w-[150px]"
+            style={{ marginTop: "0", borderRadius: 10 }}
+            onClick={() => setIsModalOpenEdit(false)}
+          >
+            Hủy bỏ
+          </ButtonComponment>
+          <ButtonComponment
+            className="ml-2 p-3 w-[150px]"
+            style={{ marginTop: "0", borderRadius: 10 }}
+          >
+            Tạo ghi chú
+          </ButtonComponment>
+            </div>
+          </div>
+      </div> 
+      </CSSTransition>
     </div>
   );
 }
