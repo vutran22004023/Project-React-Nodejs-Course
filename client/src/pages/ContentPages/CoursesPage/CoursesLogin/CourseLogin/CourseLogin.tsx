@@ -15,15 +15,17 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { useQuery } from "@tanstack/react-query";
 import {CheckCircleFilled} from '@ant-design/icons'
+import { useDispatch } from "react-redux";
+import { totalVideo } from '@/redux/Slides/timeVideoSide';
 
 export default function CourseLogin() {
   const { slug } = useParams();
+  const dispatch = useDispatch();
   const timeVideo = useSelector((state: RootState) => state.timesVideo);
   const user = useSelector((state: RootState) => state.user);
   const [dataCourseDetail, setDataCourseDetail] = useState();
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [dataVideo, setDataVideo] = useState()
-  console.log(dataVideo)
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
   const [activeChapterIndex, setActiveChapterIndex] = useState<number | null>(null);
   const [playbackTime, setPlaybackTime] = useState<number>(0); // New state for tracking playback time
@@ -57,7 +59,6 @@ export default function CourseLogin() {
       console.log(err);
     }
   })
-  const {data: dataUpdateCourse} = mutationUpdateCourse
 
   const { data: dataStateCourses, isPending: __isPendingState } = useQuery({
     queryKey: ["dataLUserCouse"],
@@ -65,6 +66,28 @@ export default function CourseLogin() {
     enabled: Boolean(user.id && dataCourseDetail?._id),
     refetchInterval: 5000,
   });
+
+  useEffect(() => {
+    if (dataStateCourses) {
+      let total = 0;
+      let completed = 0;
+      dataStateCourses.chapters?.forEach((chapter: any) => {
+        chapter.videos?.forEach((video: any) => {
+          total += 1;
+          if (video.status === "completed") {
+            completed += 1;
+          }
+        });
+      });
+
+      // Tính phần trăm hoàn thành
+      const percentage = (total > 0) ? (completed / total) * 100 : 0;
+      const roundedPercentage = Math.round(percentage);
+      dispatch(totalVideo({ percentCourse: roundedPercentage, totalVideo: total, totalcompletedVideo: completed }));
+    }
+  }, [dataStateCourses, dispatch]);
+
+  
 
   useEffect(() => {
     mutationGetDetailCourse.mutate(slug, {

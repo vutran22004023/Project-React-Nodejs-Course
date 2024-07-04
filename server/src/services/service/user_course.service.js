@@ -99,7 +99,7 @@ class UserCourseService {
   async updateProgress(data) {
     try {
       const { userId, courseId, videoId } = data;
-  
+      
       // Tìm và cập nhật trạng thái video hiện tại thành 'completed'
       const userCourse = await UserCourse.findOneAndUpdate(
         { userId, courseId, 'chapters.videos.videoId': videoId },
