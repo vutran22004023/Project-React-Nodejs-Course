@@ -62,7 +62,9 @@ class CourseService {
         };
       }
     } catch (err) {
-      return this.validator(err);
+      const error = this.validator(err);
+      if (error) return error;
+      throw err;
     }
   }
 
@@ -139,7 +141,9 @@ class CourseService {
       };
     } catch (err) {
       await session.abortTransaction();
-      return this.validator(err);
+      const error = this.validator(err);
+      if (error) return error;
+      throw err;
     } finally {
       session.endSession();
     }
@@ -167,7 +171,7 @@ class CourseService {
         status: 'ERR',
         message: `Đã có slug "${err.keyValue[key]}"`,
       };
-    } else throw err;
+    } else return 0;
   }
 
   async dataHandle(data) {
