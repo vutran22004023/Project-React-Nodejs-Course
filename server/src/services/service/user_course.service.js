@@ -23,12 +23,12 @@ class UserCourseService {
         };
       }
 
-      const checkUserCourse = await UserCourse.findOne({
+      const userCourse = await UserCourse.findOne({
         userId: userId,
         courseId: courseId,
       });
 
-      if (!checkUserCourse) {
+      if (!userCourse) {
         // Khởi tạo dữ liệu nếu người dùng chưa học khóa học này
         const chapters = course.chapters.map((chapter, chapterIndex) => ({
           chapterId: chapter._id,
@@ -40,18 +40,15 @@ class UserCourseService {
 
         const userCourse = await UserCourse.create({ userId, courseId, chapters });
 
+        course.view++;
+        course.save();
+
         return {
           status: 200,
           data: userCourse,
           message: 'Đã lưu tiến độ học',
         };
       }
-
-      // Đồng bộ dữ liệu khi admin thêm chương hoặc video mới
-      const userCourse = await UserCourse.findOne({
-        userId: userId,
-        courseId: courseId,
-      });
 
       // Đồng bộ chương
       course.chapters.forEach((courseChapter) => {
