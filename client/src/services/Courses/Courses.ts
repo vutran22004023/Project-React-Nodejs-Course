@@ -10,6 +10,15 @@ const GetAllCourses = async() => {
     }
 }
 
+const GetSearchCourses = async(search: string) => {
+  try{
+      const response: AxiosResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/course/all-courses?filter=name:${search}`);
+      return response.data;
+  }catch {
+      throw new Error('Error get all courses');
+  }
+}
+
 const GetDetailCourses = async(slug: StringConstructor) => {
   try{
       const response: AxiosResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/course/detail-courses/${slug}`);
@@ -63,5 +72,6 @@ export default {
     CreateCourses,
     DeleteCourses,
     UpdateCourse,
-    GetDetailCourses
+    GetDetailCourses,
+    GetSearchCourses
 }

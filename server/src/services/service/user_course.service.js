@@ -6,7 +6,7 @@ class UserCourseService {
   async startUserCourse(data) {
     try {
       let { userId, courseId } = data;
-
+  
       const course = await CourseModel.findById(courseId).populate({
         path: 'chapters',
         model: 'Chapter',
@@ -15,20 +15,19 @@ class UserCourseService {
           model: 'Video',
         },
       });
-
+  
       if (!course) {
         return {
           status: 'ERR',
           message: 'Khóa học không tồn tại',
         };
       }
-
-      const userCourse = await UserCourse.findOne({
+  
+      let userCourse = await UserCourse.findOne({
         userId: userId,
         courseId: courseId,
       });
-
-
+  
       if (!userCourse) {
         // Khởi tạo dữ liệu nếu người dùng chưa học khóa học này
         const chapters = course.chapters.map((chapter, chapterIndex) => ({
@@ -38,61 +37,70 @@ class UserCourseService {
             status: chapterIndex === 0 && videoIndex === 0 ? 'in_progress' : 'not_started',
           })),
         }));
-
-        const userCourse = await UserCourse.create({ userId, courseId, chapters });
-
+  
+        userCourse = await UserCourse.create({ userId, courseId, chapters });
+  
         course.view++;
-        course.save();
-
+        await course.save();
+  
         return {
           status: 200,
           data: userCourse,
           message: 'Đã lưu tiến độ học',
         };
       }
-
-      // Synchronize chapters and videos
-    const userChapterMap = new Map();
-    userCourse.chapters.forEach((uc) => userChapterMap.set(uc.chapterId.toString(), uc));
-
-    course.chapters.forEach((courseChapter,chapterIndex) => {
-      let userChapter = userChapterMap.get(courseChapter._id.toString());
-      if (!userChapter) {
-        userChapter = {
-          chapterId: courseChapter._id,
-          videos: courseChapter.videos.map((video, videoIndex) => ({
-            videoId: video._id,
-            status: chapterIndex === 0 && videoIndex === 0 ? 'in_progress' : 'not_started',
-          })),
-        };
-        userCourse.chapters.push(userChapter);
-      } else {
-        const userVideoMap = new Map();
-        userChapter.videos.forEach((uv) => userVideoMap.set(uv.videoId.toString(), uv));
-
-        courseChapter.videos.forEach((courseVideo) => {
-          if (!userVideoMap.has(courseVideo._id.toString())) {
-            userChapter.videos.push({
-              videoId: courseVideo._id,
-              status: 'not_started',
-            });
-          }
-        });
-
-        // Remove videos that no longer exist in the course chapter
-        userChapter.videos = userChapter.videos.filter((uv) =>
-          courseChapter.videos.some((cv) => cv._id.equals(uv.videoId))
-        );
-      }
-    });
-
-    // Remove chapters that no longer exist in the course
-    userCourse.chapters = userCourse.chapters.filter((uc) =>
-      course.chapters.some((cc) => cc._id.equals(uc.chapterId))
-    );
-
+  
+      // Đồng bộ hóa các chương và video
+      const userChapterMap = new Map();
+      userCourse.chapters.forEach((uc) => userChapterMap.set(uc.chapterId.toString(), uc));
+  
+      course.chapters.forEach((courseChapter, chapterIndex) => {
+        let userChapter = userChapterMap.get(courseChapter._id.toString());
+        if (!userChapter) {
+          userChapter = {
+            chapterId: courseChapter._id,
+            videos: courseChapter.videos.map((video, videoIndex) => ({
+              videoId: video._id,
+              status: chapterIndex === 0 && videoIndex === 0 ? 'in_progress' : 'not_started',
+            })),
+          };
+          userCourse.chapters.push(userChapter);
+        } else {
+          const userVideoMap = new Map();
+          userChapter.videos.forEach((uv) => userVideoMap.set(uv.videoId.toString(), uv));
+  
+          // Thêm video mới vào chương của người dùng và bảo toàn trạng thái của video hiện có
+          courseChapter.videos.forEach((courseVideo) => {
+            if (!userVideoMap.has(courseVideo._id.toString())) {
+              userChapter.videos.push({
+                videoId: courseVideo._id,
+                status: 'not_started',
+              });
+            }
+          });
+  
+          // Bảo toàn trạng thái của các video hiện có
+          userChapter.videos.forEach((uv) => {
+            const courseVideo = courseChapter.videos.find((cv) => cv._id.equals(uv.videoId));
+            if (courseVideo) {
+              uv.status = uv.status; // bảo toàn trạng thái
+            }
+          });
+  
+          // Xóa các video không còn tồn tại trong chương của khóa học
+          userChapter.videos = userChapter.videos.filter((uv) =>
+            courseChapter.videos.some((cv) => cv._id.equals(uv.videoId))
+          );
+        }
+      });
+  
+      // Xóa các chương không còn tồn tại trong khóa học
+      userCourse.chapters = userCourse.chapters.filter((uc) =>
+        course.chapters.some((cc) => cc._id.equals(uc.chapterId))
+      );
+  
       await userCourse.save();
-
+  
       return {
         status: 200,
         data: userCourse,
@@ -106,6 +114,9 @@ class UserCourseService {
       };
     }
   }
+  
+  
+  
 
   async updateProgress(data) {
     try {
