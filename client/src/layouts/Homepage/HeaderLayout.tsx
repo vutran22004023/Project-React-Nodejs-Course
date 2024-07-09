@@ -33,12 +33,18 @@ import { RootState } from "@/redux/store";
 import { resetUser } from "@/redux/Slides/userSide";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+import { useEffect, useState } from "react";
+import {Search} from '@/redux/Slides/searchSide'
 export default function HeaderLayout() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user);
-
+  const [search, setSearch] = useState()
+  
+  useEffect(()=> {
+    dispatch(Search({search: search}))
+  },[search])
+  
   const handleLogout = async () => {
     try {
       localStorage.removeItem("access_Token");
@@ -68,6 +74,8 @@ export default function HeaderLayout() {
           type="text"
           placeholder="Search"
           className="flex-grow ml-4 text-gray-700 focus:text-gray-800 "
+          value={search}
+          onChange={(e) => setSearch(e.target.value as any)}
           style={{
             padding: "5px 10px",
             border: "1px solid #000",
@@ -78,9 +86,24 @@ export default function HeaderLayout() {
       <div className="flex gap-4 items-center mr-4">
         {user.access_Token && user.status === true ? (
           <>
-            <Link to="/my-courses" className="text-black">
-              Khóa học của tôi
-            </Link>
+          <HoverCard>
+              <HoverCardTrigger asChild>
+                <div className="cursor-pointer">
+                  {" "}
+                  <div className="text-black">Khóa học của tôi</div>
+                </div>
+              </HoverCardTrigger>
+              <HoverCardContent className="w-100 mt-2 mr-20  text-black bg-[#f0efef] rounded p-2">
+                <div className="flex justify-between space-x-4 p-2 w-[350px] h-[300px]">
+                  <div className=" flex justify-between w-full">
+                    <div className="text-sm font-semibold  ">Khóa học của tôi</div>
+                    <div className="text-sm  font-semibold ">Xem tất cả</div>
+                  </div>
+
+                  <div></div>
+                </div>
+              </HoverCardContent>
+            </HoverCard>
             <HoverCard>
               <HoverCardTrigger asChild>
                 <div className="cursor-pointer">
@@ -88,7 +111,7 @@ export default function HeaderLayout() {
                   <BellRing className="text-black" />
                 </div>
               </HoverCardTrigger>
-              <HoverCardContent className="w-100 mt-4 mr-7  text-black bg-[#f0efef] rounded p-2">
+              <HoverCardContent className="w-100 mt-2 mr-10  text-black bg-[#f0efef] rounded p-2">
                 <div className="flex justify-between space-x-4">
                   <div className="space-y-1">
                     <h4 className="text-sm font-semibold">@nextjs</h4>

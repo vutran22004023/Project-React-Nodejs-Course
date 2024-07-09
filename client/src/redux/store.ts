@@ -4,14 +4,15 @@ import { persistReducer, persistStore } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import userReducer from './Slides/userSide';
 import timeReducer from './Slides/timeVideoSide'
-
+import searchReducer from './Slides/searchSide'
 // Define RootState
 export type RootState = ReturnType<typeof rootReducer>;
 
 // Combine reducers
 const rootReducer = combineReducers({
   user: userReducer,
-  timesVideo: timeReducer
+  timesVideo: timeReducer,
+  searchs:searchReducer
   // Add other reducers as needed
 });
 

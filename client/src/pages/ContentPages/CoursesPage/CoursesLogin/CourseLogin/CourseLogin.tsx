@@ -15,17 +15,27 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { useQuery } from "@tanstack/react-query";
 import {CheckCircleFilled} from '@ant-design/icons'
+import { useDispatch } from "react-redux";
+import { totalVideo } from '@/redux/Slides/timeVideoSide';
+import WordPost from "@/components/WordPostComponment/wordPost";
+import { CSSTransition } from 'react-transition-group';
+import '../../../../../index.css'
 
 export default function CourseLogin() {
   const { slug } = useParams();
+  const dispatch = useDispatch();
   const timeVideo = useSelector((state: RootState) => state.timesVideo);
   const user = useSelector((state: RootState) => state.user);
   const [dataCourseDetail, setDataCourseDetail] = useState();
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [dataVideo, setDataVideo] = useState()
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
+  const [activeChapterIndex, setActiveChapterIndex] = useState<number | null>(null);
   const [playbackTime, setPlaybackTime] = useState<number>(0); // New state for tracking playback time
   const playbackIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [disableNextLesson,setDisableNextLesson] = useState<any>()
+  const initialActiveVideoRef = useRef<any>(null); 
+  const [isModalOpenEdit, setIsModalOpenEdit] = useState(false)
   const mutationGetDetailCourse = useMutationHook(async (slug: any) => {
     try {
       const res = await CourseService.GetDetailCourses(slug);
@@ -52,8 +62,6 @@ export default function CourseLogin() {
       console.log(err);
     }
   })
-  const {data: dataUpdateCourse} = mutationUpdateCourse
-  console.log(dataUpdateCourse)
 
   const { data: dataStateCourses, isPending: __isPendingState } = useQuery({
     queryKey: ["dataLUserCouse"],
@@ -61,6 +69,28 @@ export default function CourseLogin() {
     enabled: Boolean(user.id && dataCourseDetail?._id),
     refetchInterval: 5000,
   });
+
+  useEffect(() => {
+    if (dataStateCourses) {
+      let total = 0;
+      let completed = 0;
+      dataStateCourses.chapters?.forEach((chapter: any) => {
+        chapter.videos?.forEach((video: any) => {
+          total += 1;
+          if (video.status === "completed") {
+            completed += 1;
+          }
+        });
+      });
+
+      // Tính phần trăm hoàn thành
+      const percentage = (total > 0) ? (completed / total) * 100 : 0;
+      const roundedPercentage = Math.round(percentage);
+      dispatch(totalVideo({ percentCourse: roundedPercentage, totalVideo: total, totalcompletedVideo: completed }));
+    }
+  }, [dataStateCourses, dispatch]);
+
+  
 
   useEffect(() => {
     mutationGetDetailCourse.mutate(slug, {
@@ -125,6 +155,7 @@ export default function CourseLogin() {
   }, [timeVideo.isPlaying, dataVideo]);
 
 
+
   const mergedChapters = dataCourseDetail?.chapters?.map((chapter: any) => {
     const userChapter = dataStateCourses?.chapters?.find((c:any) => {
       return c.chapterId === chapter._id
@@ -144,7 +175,101 @@ export default function CourseLogin() {
     return chapter;
   }) || [];
 
+  useEffect(() => {
+    if (mergedChapters && mergedChapters.length > 0 && !initialActiveVideoRef.current) {
+      let inProgressVideo = null;
+      let chapterIndex = null;
 
+      // Loop through each chapter to find the in-progress video
+      for (let i = 0; i < mergedChapters.length; i++) {
+        const chapter = mergedChapters[i];
+        if (chapter.videos) {
+          inProgressVideo = chapter.videos.find((video: any) => video.status === "in_progress");
+          if (inProgressVideo) {
+            chapterIndex = i;
+            break; // Stop searching once the in-progress video is found
+          }
+        }
+      }
+
+      if (inProgressVideo) {
+        initialActiveVideoRef.current = inProgressVideo; // Store the initially active video
+        setDataVideo(inProgressVideo);
+        setActiveSlug(inProgressVideo.slug);
+        setActiveChapterIndex(chapterIndex); // Set the active chapter index
+      }
+    }
+  }, [mergedChapters]);
+
+  const handleAccordionChange = (value: string) => {
+    const chapterIndex = parseInt(value.split('-')[1]);
+    setActiveChapterIndex(chapterIndex);
+  };
+
+  const handlePreviousLesson = () => {
+    if (activeChapterIndex !== null && activeSlug !== null) {
+      const currentChapter = mergedChapters[activeChapterIndex];
+      const currentIndex = currentChapter.videos.findIndex((video: any) => video.slug === activeSlug);
+  
+      if (currentIndex > 0) {
+        const previousVideo = currentChapter.videos[currentIndex - 1];
+        setActiveSlug(previousVideo.slug);
+        setDataVideo(previousVideo);
+        setDisableNextLesson(false);
+      } else if (activeChapterIndex > 0) {
+        const previousChapter = mergedChapters[activeChapterIndex - 1];
+        const lastVideoOfPreviousChapter = previousChapter.videos[previousChapter.videos.length - 1];
+        setActiveChapterIndex(activeChapterIndex - 1);
+        setActiveSlug(lastVideoOfPreviousChapter.slug);
+        setDataVideo(lastVideoOfPreviousChapter);
+        setDisableNextLesson(false);
+      }
+    }
+  };
+  
+  const handleNextLesson = () => {
+    if (activeChapterIndex !== null && activeSlug !== null) {
+      const currentChapter = mergedChapters[activeChapterIndex];
+      const currentIndex = currentChapter.videos.findIndex((video: any) => video.slug === activeSlug);
+  
+      // Find the next playable video
+      let nextVideoIndex = currentIndex + 1;
+      while (nextVideoIndex < currentChapter.videos.length) {
+        const nextVideo = currentChapter.videos[nextVideoIndex];
+        if (nextVideo.status !== "not_started") {
+          setActiveSlug(nextVideo.slug);
+          setDataVideo(nextVideo);
+          setDisableNextLesson(false); // Enable the button
+          return; // Exit the function after setting the next playable video
+        }
+        nextVideoIndex++;
+      }
+  
+      // If no playable video found in current chapter, move to next chapter
+      if (activeChapterIndex < mergedChapters.length - 1) {
+        let nextChapterIndex = activeChapterIndex + 1;
+        while (nextChapterIndex < mergedChapters.length) {
+          const nextChapter = mergedChapters[nextChapterIndex];
+          const firstVideoOfNextChapter = nextChapter.videos[0];
+          if (firstVideoOfNextChapter.status !== "not_started") {
+            setActiveChapterIndex(nextChapterIndex);
+            setActiveSlug(firstVideoOfNextChapter.slug);
+            setDataVideo(firstVideoOfNextChapter);
+            setDisableNextLesson(false); // Enable the button
+            return; // Exit the function after setting the first playable video of next chapter
+          }
+          nextChapterIndex++;
+        }
+      }
+  
+      // If all next videos are not started, disable the button
+      setDisableNextLesson(true);
+    }
+  };
+  
+  const handleOpenEditBlog = () => {
+    setIsModalOpenEdit(!isModalOpenEdit);
+  };
 
   return (
     <div className="flex mt-[15px] ">
@@ -167,6 +292,7 @@ export default function CourseLogin() {
             <ButtonComponment
               className="p-5 w-[200px]"
               style={{ marginTop: "0", borderRadius: "10px" }}
+              onClick={handleOpenEditBlog}
             >
               {" "}
               Thêm ghi chú
@@ -184,8 +310,11 @@ export default function CourseLogin() {
         <div className="cactus-classical-serif-md mb-3 p-2">
           Nội dung khóa học
         </div>
-        <Accordion type="single" collapsible className="w-full">
-          {mergedChapters.map((chapter: any, index: number) => (
+        <Accordion type="single" collapsible className="w-full" 
+        value={activeChapterIndex !== null ? `item-${activeChapterIndex}` : undefined}
+        onValueChange={handleAccordionChange}
+        >
+          {mergedChapters?.map((chapter: any, index: number) => (
             <AccordionItem key={index} value={`item-${index}`}>
               <AccordionTrigger className="bg-slate-100 px-2 hover:bg-slate-200 ">
                 {chapter.namechapter}
@@ -243,20 +372,22 @@ export default function CourseLogin() {
           <ButtonComponment
             className="w-[200px]"
             style={{ marginTop: "0", borderRadius: "10px", marginRight: "5px" }}
+            onClick={handlePreviousLesson}
           >
             <ArrowBigLeft />
             BÀI TRƯỚC
           </ButtonComponment>
           <ButtonComponment
-            className="w-[200px]"
+            className={`w-[200px] ${disableNextLesson ? "opacity-50 cursor-not-allowed " : ""}`}
             style={{ marginTop: "0", borderRadius: "10px" }}
+            onClick={handleNextLesson}
           >
             BÀI TIẾP THEO
             <ArrowBigRight />
           </ButtonComponment>
         </div>
         <div className="absolute top-1/2 right-0 transform -translate-y-1/2 mr-3 flex items-center">
-          <div>1. Khái niệm kỹ thuật cần biết</div>
+          <div>{dataVideo?.childname}</div>
           <ButtonComponment
             className="ml-2 p-3 w-[50px]"
             style={{ marginTop: "0", borderRadius: "60%" }}
@@ -265,6 +396,36 @@ export default function CourseLogin() {
           </ButtonComponment>
         </div>
       </div>
+      <CSSTransition
+        in={isModalOpenEdit}
+        timeout={300}
+        classNames="modal"
+        unmountOnExit
+      >
+         <div className="fixed bottom-0 left-0 bg-[#f4f4f4] right-0 z-10 border-b p-5 w-[69.5%] h-[290px] border-t border-black">
+          <div className="p-5 bg-[#fff] border  border-black rounded-xl h-[200px]">
+            <WordPost/>
+          </div>
+          <div className="flex justify-between">
+            <div ></div>
+            <div className="flex mt-5">
+            <ButtonComponment
+            className="ml-2 p-3 w-[150px]"
+            style={{ marginTop: "0", borderRadius: 10 }}
+            onClick={() => setIsModalOpenEdit(false)}
+          >
+            Hủy bỏ
+          </ButtonComponment>
+          <ButtonComponment
+            className="ml-2 p-3 w-[150px]"
+            style={{ marginTop: "0", borderRadius: 10 }}
+          >
+            Tạo ghi chú
+          </ButtonComponment>
+            </div>
+          </div>
+      </div> 
+      </CSSTransition>
     </div>
   );
 }

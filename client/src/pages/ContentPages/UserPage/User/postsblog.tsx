@@ -6,14 +6,21 @@ import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 import 'setimmediate';
 import { Input } from "@/components/ui/input";
 import ButtonComponent from '@/components/ButtonComponent/Button'
+import { useMutationHook } from '@/hooks';
+import { RootState } from "@/redux/store";
+import { BlogService } from '@/services';
+import { useSelector, useDispatch } from "react-redux";
+import {success, error} from '@/components/MessageComponents/Message'
 export default function PostsBlog() {
+  const user = useSelector((state: RootState) => state.user);
   const note = {
     id: "9999",
-    content: '<p>dasdasdasdasdasdasdasda</p>',
+    content: '<p></p>',
   };
 
   const [editorState, setEditorState] = useState(() => EditorState.createEmpty());
   const [rawHTML, setRawHTML] = useState(note.content);
+  const [valueHeader, setValueHeader] = useState<string>()
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -48,14 +55,44 @@ export default function PostsBlog() {
     }
   }, [note.content, isMounted]);
 
+  const mutationBlog = useMutationHook(async(data) => {
+    try {
+      const access_Token = user?.access_Token;
+      const res = await BlogService.CreateBlog(data,access_Token)
+      return res
+    }catch(e) {
+      console.log(e)
+    }
+  })
+
+
+  const handleButtonCreateBlog =() => {
+    mutationBlog.mutate({title: valueHeader, content: rawHTML})
+  }
+
+  const {data: dataBlog}= mutationBlog
+  useEffect(() => {
+    if(dataBlog?.status ===  200) {
+      success(`${dataBlog.message}`)
+      setValueHeader('')
+      setRawHTML('')
+    }else if(dataBlog?.status === "ERR") {
+      error(`${dataBlog.message}`)
+    }
+  },[dataBlog])
+  
+
   return (
     <div className="container mt-[60px] w-full">
       <div className=" mb-6 flex justify-between items-center">
         <div className='w-full] border-0'>
-        <Input className="p-3 w-full border-0 text-[30px]" type="text" placeholder="Tiêu đề" />
+        <Input className="p-3 w-full border-0 text-[30px]" type="text" placeholder="Tiêu đề" value={valueHeader} onChange={(e) => setValueHeader(e.target.value)} />
         </div>
         <div>
-        <ButtonComponent className='' style={{margin: '0', borderRadius:'10px'}}>Đăng bài</ButtonComponent>
+        <ButtonComponent className='' style={{margin: '0', borderRadius:'10px'}} onClick={handleButtonCreateBlog}
+                  disabled={valueHeader?.length && rawHTML ? false :true}
+        
+        >Đăng bài</ButtonComponent>
         </div>
       </div>
       <Editor

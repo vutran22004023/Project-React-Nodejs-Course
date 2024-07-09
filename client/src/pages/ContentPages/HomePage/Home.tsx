@@ -1,12 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import CarouselComponent from "@/components/CarouselComponent/carousel";
 import CardComponent from "@/components/CardComponent/Card";
 import { Link } from 'react-router-dom';
 import { CourseService } from "@/services";
-import { useCombinedData } from '@/hooks/index';
+import { useCombinedData,useDebounce } from '@/hooks/index';
 import LoadingCard from "@/components/LoadingComponent/LoadingCard";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
+import { useQuery } from "@tanstack/react-query";
+
 // Định nghĩa kiểu dữ liệu cho khóa học
 interface Course {
   chapters: any[];
@@ -32,16 +34,31 @@ interface DataAllCourses {
 }
 
 export default function Index() {
+  const refSearch = useRef();
   const [dataCourseFree, setDataCourseFree] = useState<Course[]>([]);
   const [dataCoursePaid, setDataCoursePaid] = useState<Course[]>([]);
   const user = useSelector((state: RootState) => state.user);
-  const getAllCourses = async (): Promise<DataAllCourses> => {
-    const res = await CourseService.GetAllCourses();
+  const search = useSelector((state: RootState) => state.searchs);
+  const searchDebouned = useDebounce(search.search, 500);
+
+  const getAllCourses = async (context: any): Promise<DataAllCourses> => {
+    const search = context.queryKey[1];
+    const res = await CourseService.GetAllCourses(search);
     return res;
   };
 
-  const fetchTableData = useCombinedData('dataAllCourses', getAllCourses);
-  const { data: dataAllCourses, error: _Errdata, isLoading: isLoadingAllCourses } = fetchTableData;
+  // const fetchTableData = useCombinedData('dataAllCourses', getAllCourses);
+  // const { data: dataAllCourses, error: _Errdata, isLoading: isLoadingAllCourses } = fetchTableData;
+  useEffect(() => {
+    if (refSearch.current) {
+      getAllCourses(searchDebouned);
+    }
+    refSearch.current = true;
+  }, [searchDebouned]);
+  const { data: dataAllCourses, isPending: isLoadingAllCourses } = useQuery({
+    queryKey: ["course", searchDebouned],
+    queryFn: getAllCourses,
+  });
   useEffect(() => {
     if (dataAllCourses && dataAllCourses.data) {
       const freeCourses = dataAllCourses.data.filter((course: Course) => {

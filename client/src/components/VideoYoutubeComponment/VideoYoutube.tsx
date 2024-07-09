@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import YouTube, { YouTubeProps } from "react-youtube";
 import { useDispatch } from "react-redux";
-import { timeVideo } from '@/redux/Slides/timeVideoSide';
+import { timeVideos } from '@/redux/Slides/timeVideoSide';
 
 interface YouTubeComponentProps {
   src: string;
@@ -39,7 +39,7 @@ const VideoYoutubeComponent: React.FC<YouTubeComponentProps> = ({ src, title, st
         intervalRef.current = setInterval(() => {
           const currentTime = playerRef.current.getCurrentTime();
           setCurrentTime(currentTime);
-          dispatch(timeVideo({ time: formatTime(currentTime), isPlaying: true }));
+          dispatch(timeVideos({ time: formatTime(currentTime), isPlaying: true }));
         }, 1000);
       }
     } else {
@@ -50,7 +50,7 @@ const VideoYoutubeComponent: React.FC<YouTubeComponentProps> = ({ src, title, st
       if (event.data === YouTube.PlayerState.PAUSED || event.data === YouTube.PlayerState.ENDED) {
         const currentTime = playerRef.current.getCurrentTime();
         setCurrentTime(currentTime);
-        dispatch(timeVideo({ time: formatTime(currentTime), isPlaying: false }));
+        dispatch(timeVideos({ time: formatTime(currentTime), isPlaying: false }));
       }
     }
   };
