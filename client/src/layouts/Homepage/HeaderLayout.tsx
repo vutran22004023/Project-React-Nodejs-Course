@@ -78,9 +78,24 @@ export default function HeaderLayout() {
       <div className="flex gap-4 items-center mr-4">
         {user.access_Token && user.status === true ? (
           <>
-            <Link to="/my-courses" className="text-black">
-              Khóa học của tôi
-            </Link>
+          <HoverCard>
+              <HoverCardTrigger asChild>
+                <div className="cursor-pointer">
+                  {" "}
+                  <div className="text-black">Khóa học của tôi</div>
+                </div>
+              </HoverCardTrigger>
+              <HoverCardContent className="w-100 mt-2 mr-20  text-black bg-[#f0efef] rounded p-2">
+                <div className="flex justify-between space-x-4 p-2 w-[350px] h-[300px]">
+                  <div className=" flex justify-between w-full">
+                    <div className="text-sm font-semibold  ">Khóa học của tôi</div>
+                    <div className="text-sm  font-semibold ">Xem tất cả</div>
+                  </div>
+
+                  <div></div>
+                </div>
+              </HoverCardContent>
+            </HoverCard>
             <HoverCard>
               <HoverCardTrigger asChild>
                 <div className="cursor-pointer">
@@ -88,7 +103,7 @@ export default function HeaderLayout() {
                   <BellRing className="text-black" />
                 </div>
               </HoverCardTrigger>
-              <HoverCardContent className="w-100 mt-4 mr-7  text-black bg-[#f0efef] rounded p-2">
+              <HoverCardContent className="w-100 mt-2 mr-10  text-black bg-[#f0efef] rounded p-2">
                 <div className="flex justify-between space-x-4">
                   <div className="space-y-1">
                     <h4 className="text-sm font-semibold">@nextjs</h4>
