@@ -50,6 +50,11 @@ class UserCourseService {
         };
       }
 
+      // Xóa các chương không còn tồn tại trong khóa học
+      userCourse.chapters = userCourse.chapters.filter((uc) =>
+        course.chapters.some((cc) => cc._id.equals(uc.chapterId))
+      );
+
       // Đồng bộ chương
       course.chapters.forEach((courseChapter) => {
         const userChapter = userCourse.chapters.find((uc) => uc.chapterId.equals(courseChapter._id));
@@ -62,6 +67,11 @@ class UserCourseService {
             })),
           });
         } else {
+          // Xóa các video không còn tồn tại trong chương của khóa học
+          userChapter.videos = userChapter.videos.filter((uv) =>
+            courseChapter.videos.some((cv) => cv._id.equals(uv.videoId))
+          );
+
           // Đồng bộ video trong chương
           courseChapter.videos.forEach((courseVideo) => {
             const userVideo = userChapter.videos.find((uv) => uv.videoId.equals(courseVideo._id));
@@ -75,7 +85,7 @@ class UserCourseService {
         }
       });
 
-      await userCourse.save();
+      await userCourse.save({ validateBeforeSave: false });
 
       return {
         status: 200,
