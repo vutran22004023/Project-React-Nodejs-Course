@@ -33,12 +33,18 @@ import { RootState } from "@/redux/store";
 import { resetUser } from "@/redux/Slides/userSide";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+import { useEffect, useState } from "react";
+import {Search} from '@/redux/Slides/searchSide'
 export default function HeaderLayout() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user);
-
+  const [search, setSearch] = useState()
+  
+  useEffect(()=> {
+    dispatch(Search({search: search}))
+  },[search])
+  
   const handleLogout = async () => {
     try {
       localStorage.removeItem("access_Token");
@@ -68,6 +74,8 @@ export default function HeaderLayout() {
           type="text"
           placeholder="Search"
           className="flex-grow ml-4 text-gray-700 focus:text-gray-800 "
+          value={search}
+          onChange={(e) => setSearch(e.target.value as any)}
           style={{
             padding: "5px 10px",
             border: "1px solid #000",

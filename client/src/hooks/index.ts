@@ -1,4 +1,5 @@
 import { useMutation,useQuery, UseQueryOptions  } from '@tanstack/react-query';
+import { useState,useEffect } from 'react'
 import useSWR from 'swr';
 export const useMutationHook = <TData = unknown, TVariables = unknown>(
   fnCallBack: (variables: TVariables) => Promise<TData>
@@ -30,3 +31,17 @@ export const useCombinedData = (queryKey: string, fetcher: () => Promise<any>, o
 
   return { data: dataFromQuery, error, isLoading, refetch  };
 };
+
+
+export const useDebounce = (value:any, delay:any) => {
+  const [valueDebounce, setValueDebounce] = useState()
+  useEffect(() => {
+      const handle = setTimeout(() => {
+          setValueDebounce(value)
+      },[delay])
+      return () => {
+          clearTimeout(handle)
+      }
+  },[value])
+  return valueDebounce
+}
