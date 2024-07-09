@@ -28,6 +28,7 @@ class UserCourseService {
         courseId: courseId,
       });
 
+
       if (!userCourse) {
         // Khởi tạo dữ liệu nếu người dùng chưa học khóa học này
         const chapters = course.chapters.map((chapter, chapterIndex) => ({
@@ -50,30 +51,45 @@ class UserCourseService {
         };
       }
 
-      // Đồng bộ chương
-      course.chapters.forEach((courseChapter) => {
-        const userChapter = userCourse.chapters.find((uc) => uc.chapterId.equals(courseChapter._id));
-        if (!userChapter) {
-          userCourse.chapters.push({
-            chapterId: courseChapter._id,
-            videos: courseChapter.videos.map((video, videoIndex) => ({
-              videoId: video._id,
-              status: videoIndex === 0 ? 'in_progress' : 'not_started',
-            })),
-          });
-        } else {
-          // Đồng bộ video trong chương
-          courseChapter.videos.forEach((courseVideo) => {
-            const userVideo = userChapter.videos.find((uv) => uv.videoId.equals(courseVideo._id));
-            if (!userVideo) {
-              userChapter.videos.push({
-                videoId: courseVideo._id,
-                status: 'not_started',
-              });
-            }
-          });
-        }
-      });
+      // Synchronize chapters and videos
+    const userChapterMap = new Map();
+    userCourse.chapters.forEach((uc) => userChapterMap.set(uc.chapterId.toString(), uc));
+
+    course.chapters.forEach((courseChapter,chapterIndex) => {
+      let userChapter = userChapterMap.get(courseChapter._id.toString());
+      if (!userChapter) {
+        userChapter = {
+          chapterId: courseChapter._id,
+          videos: courseChapter.videos.map((video, videoIndex) => ({
+            videoId: video._id,
+            status: chapterIndex === 0 && videoIndex === 0 ? 'in_progress' : 'not_started',
+          })),
+        };
+        userCourse.chapters.push(userChapter);
+      } else {
+        const userVideoMap = new Map();
+        userChapter.videos.forEach((uv) => userVideoMap.set(uv.videoId.toString(), uv));
+
+        courseChapter.videos.forEach((courseVideo) => {
+          if (!userVideoMap.has(courseVideo._id.toString())) {
+            userChapter.videos.push({
+              videoId: courseVideo._id,
+              status: 'not_started',
+            });
+          }
+        });
+
+        // Remove videos that no longer exist in the course chapter
+        userChapter.videos = userChapter.videos.filter((uv) =>
+          courseChapter.videos.some((cv) => cv._id.equals(uv.videoId))
+        );
+      }
+    });
+
+    // Remove chapters that no longer exist in the course
+    userCourse.chapters = userCourse.chapters.filter((uc) =>
+      course.chapters.some((cc) => cc._id.equals(uc.chapterId))
+    );
 
       await userCourse.save();
 
