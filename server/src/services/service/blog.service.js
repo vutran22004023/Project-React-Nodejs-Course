@@ -16,7 +16,7 @@ class BlogService {
       options.sort = { [sort[1]]: sort[0] };
     }
 
-    const allPosts = await Post.find(query, null, options).populate('userId', 'name avatar').lean();
+    const allPosts = await Post.find(query, null, options).populate('userId', 'name avatar isAdmin').lean();
 
     return {
       status: 200,
@@ -29,7 +29,7 @@ class BlogService {
   }
 
   async getDetaiPost(slug) {
-    const checkPost = await Post.findOne({ slug: slug }).populate('userId', 'name avatar').lean();
+    const checkPost = await Post.findOne({ slug: slug }).populate('userId', 'name avatar isAdmin').lean();
     if (!checkPost) {
       return {
         status: 'ERR',

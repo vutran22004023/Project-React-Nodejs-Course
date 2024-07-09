@@ -12,7 +12,10 @@ const videoSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Chưa có đường dẫn video'],
     },
-    time: { type: String, default: null },
+    time: {
+      type: String,
+      default: null,
+    },
     slug: {
       type: String,
       required: true,
@@ -76,6 +79,18 @@ const courseSchema = new mongoose.Schema(
       type: String,
       unique: true,
       required: [true, 'Chưa có slug của khóa học'],
+    },
+    view: {
+      type: Number,
+      default: 0,
+    },
+    totalVideos: {
+      type: Number,
+      default: 0,
+    },
+    totalTime: {
+      type: String,
+      default: null,
     },
   },
   {

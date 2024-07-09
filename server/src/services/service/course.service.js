@@ -129,6 +129,8 @@ class CourseService {
       course.priceAmount = reqData.priceAmount;
       course.image = reqData.image;
       course.slug = reqData.slug;
+      course.totalVideos = reqData.totalVideos;
+      course.totalTime = reqData.totalTime;
 
       await course.save({ session });
       await session.commitTransaction();
@@ -182,6 +184,9 @@ class CourseService {
       }
     });
 
+    let totalVideos = 0;
+    let totalTime = moment.duration();
+
     for (const chapter of data.chapters) {
       for (const video of chapter.videos) {
         Object.keys(video).forEach((key) => {
@@ -189,6 +194,7 @@ class CourseService {
             video[key] = video[key].trim();
           }
         });
+        totalVideos++;
 
         // Set video time and handle video link
         if (video.video) {
@@ -196,11 +202,16 @@ class CourseService {
           const match = video.video.match(regex);
           if (Array.isArray(match) && match[0]) {
             video.video = `https://www.youtube.com/embed/${match[0]}`;
-            video.time = await this.getVideoDuration(match[0]);
+            let time = await this.getVideoDuration(match[0]);
+            video.time = time.format('hh:mm:ss');
+            totalTime.add(time);
           }
         }
       }
     }
+
+    data.totalVideos = totalVideos;
+    if (totalTime.asSeconds() !== 0) data.totalTime = totalTime.format('hh:mm:ss');
 
     // Check duplicate and empty video slug
     const uniqueValues = new Set();
@@ -242,10 +253,10 @@ class CourseService {
       const res = await axios.get(url);
       let duration = res.data.items[0]?.contentDetails.duration;
       if (!duration) return null;
-      duration = moment.duration(duration).format('hh:mm:ss');
+      duration = moment.duration(duration);
       return duration;
     } catch (err) {
-      console.log('CourseService ~ axios.get ~ err:', err);
+      console.log('CourseService ~ getVideoDuration ~ err:', err);
       return null;
     }
   }
