@@ -75,7 +75,7 @@ class UserCourseService {
         }
       });
 
-      await userCourse.save();
+      await userCourse.save({ validateBeforeSave: false });
 
       return {
         status: 200,
