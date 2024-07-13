@@ -25,6 +25,7 @@ export default function CourseLogin() {
   const { slug } = useParams();
   const dispatch = useDispatch();
   const timeVideo = useSelector((state: RootState) => state.timesVideo);
+  console.log(timeVideo)
   const user = useSelector((state: RootState) => state.user);
   const [dataCourseDetail, setDataCourseDetail] = useState();
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
