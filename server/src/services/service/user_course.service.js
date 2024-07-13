@@ -49,13 +49,10 @@ class UserCourseService {
           message: 'Đã lưu tiến độ học',
         };
       }
-  
-      // Đồng bộ hóa các chương và video
-      const userChapterMap = new Map();
-      userCourse.chapters.forEach((uc) => userChapterMap.set(uc.chapterId.toString(), uc));
-  
-      course.chapters.forEach((courseChapter, chapterIndex) => {
-        let userChapter = userChapterMap.get(courseChapter._id.toString());
+
+      // Đồng bộ chương
+      course.chapters.forEach((courseChapter) => {
+        const userChapter = userCourse.chapters.find((uc) => uc.chapterId.equals(courseChapter._id));
         if (!userChapter) {
           userChapter = {
             chapterId: courseChapter._id,
@@ -66,10 +63,7 @@ class UserCourseService {
           };
           userCourse.chapters.push(userChapter);
         } else {
-          const userVideoMap = new Map();
-          userChapter.videos.forEach((uv) => userVideoMap.set(uv.videoId.toString(), uv));
-  
-          // Thêm video mới vào chương của người dùng và bảo toàn trạng thái của video hiện có
+          // Đồng bộ video trong chương
           courseChapter.videos.forEach((courseVideo) => {
             if (!userVideoMap.has(courseVideo._id.toString())) {
               userChapter.videos.push({
@@ -78,29 +72,11 @@ class UserCourseService {
               });
             }
           });
-  
-          // Bảo toàn trạng thái của các video hiện có
-          userChapter.videos.forEach((uv) => {
-            const courseVideo = courseChapter.videos.find((cv) => cv._id.equals(uv.videoId));
-            if (courseVideo) {
-              uv.status = uv.status; // bảo toàn trạng thái
-            }
-          });
-  
-          // Xóa các video không còn tồn tại trong chương của khóa học
-          userChapter.videos = userChapter.videos.filter((uv) =>
-            courseChapter.videos.some((cv) => cv._id.equals(uv.videoId))
-          );
         }
       });
-  
-      // Xóa các chương không còn tồn tại trong khóa học
-      userCourse.chapters = userCourse.chapters.filter((uc) =>
-        course.chapters.some((cc) => cc._id.equals(uc.chapterId))
-      );
-  
+
       await userCourse.save();
-  
+
       return {
         status: 200,
         data: userCourse,
