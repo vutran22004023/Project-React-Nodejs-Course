@@ -150,7 +150,7 @@ const deleteManyUser = async (ids) => {
 
 const createUser = async (user) => {
   try {
-    const { name, email, password } = user;
+    const { name, email, password, ...rest } = user;
     const hashedPassword = await bcrypt.hash(password, parseInt(process.env.SALT_ROUNDS));
     const checkUser = await UserModel.findOne({
       email: email,
@@ -165,6 +165,7 @@ const createUser = async (user) => {
       name,
       email,
       password: hashedPassword,
+      ...rest,
     });
     if (createdUser) {
       return {
