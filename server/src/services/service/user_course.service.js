@@ -23,12 +23,12 @@ class UserCourseService {
         };
       }
 
-      const userCourse = await UserCourse.findOne({
+      const checkUserCourse = await UserCourse.findOne({
         userId: userId,
         courseId: courseId,
       });
 
-      if (!userCourse) {
+      if (!checkUserCourse) {
         // Khởi tạo dữ liệu nếu người dùng chưa học khóa học này
         const chapters = course.chapters.map((chapter, chapterIndex) => ({
           chapterId: chapter._id,
@@ -40,9 +40,6 @@ class UserCourseService {
 
         const userCourse = await UserCourse.create({ userId, courseId, chapters });
 
-        course.view++;
-        course.save();
-
         return {
           status: 200,
           data: userCourse,
@@ -50,10 +47,11 @@ class UserCourseService {
         };
       }
 
-      // Xóa các chương không còn tồn tại trong khóa học
-      userCourse.chapters = userCourse.chapters.filter((uc) =>
-        course.chapters.some((cc) => cc._id.equals(uc.chapterId))
-      );
+      // Đồng bộ dữ liệu khi admin thêm chương hoặc video mới
+      const userCourse = await UserCourse.findOne({
+        userId: userId,
+        courseId: courseId,
+      });
 
       // Đồng bộ chương
       course.chapters.forEach((courseChapter) => {
@@ -67,11 +65,6 @@ class UserCourseService {
             })),
           });
         } else {
-          // Xóa các video không còn tồn tại trong chương của khóa học
-          userChapter.videos = userChapter.videos.filter((uv) =>
-            courseChapter.videos.some((cv) => cv._id.equals(uv.videoId))
-          );
-
           // Đồng bộ video trong chương
           courseChapter.videos.forEach((courseVideo) => {
             const userVideo = userChapter.videos.find((uv) => uv.videoId.equals(courseVideo._id));
@@ -85,7 +78,7 @@ class UserCourseService {
         }
       });
 
-      await userCourse.save({ validateBeforeSave: false });
+      await userCourse.save();
 
       return {
         status: 200,
