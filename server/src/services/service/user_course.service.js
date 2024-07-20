@@ -23,12 +23,12 @@ class UserCourseService {
         };
       }
   
-      let userCourse = await UserCourse.findOne({
+      const checkUserCourse = await UserCourse.findOne({
         userId: userId,
         courseId: courseId,
       });
   
-      if (!userCourse) {
+      if (!checkUserCourse) {
         // Khởi tạo dữ liệu nếu người dùng chưa học khóa học này
         const chapters = course.chapters.map((chapter, chapterIndex) => ({
           chapterId: chapter._id,
@@ -38,10 +38,7 @@ class UserCourseService {
           })),
         }));
   
-        userCourse = await UserCourse.create({ userId, courseId, chapters });
-  
-        course.view++;
-        await course.save();
+        const userCourse = await UserCourse.create({ userId, courseId, chapters });
   
         return {
           status: 200,
@@ -49,23 +46,29 @@ class UserCourseService {
           message: 'Đã lưu tiến độ học',
         };
       }
-
+  
+      // Đồng bộ dữ liệu khi admin thêm chương hoặc video mới
+      const userCourse = await UserCourse.findOne({
+        userId: userId,
+        courseId: courseId,
+      });
+  
       // Đồng bộ chương
-      course.chapters.forEach((courseChapter) => {
-        const userChapter = userCourse.chapters.find((uc) => uc.chapterId.equals(courseChapter._id));
+      course.chapters.forEach(courseChapter => {
+        const userChapter = userCourse.chapters.find(uc => uc.chapterId.equals(courseChapter._id));
         if (!userChapter) {
-          userChapter = {
+          userCourse.chapters.push({
             chapterId: courseChapter._id,
             videos: courseChapter.videos.map((video, videoIndex) => ({
               videoId: video._id,
-              status: chapterIndex === 0 && videoIndex === 0 ? 'in_progress' : 'not_started',
+              status: videoIndex === 0 ? 'in_progress' : 'not_started',
             })),
-          };
-          userCourse.chapters.push(userChapter);
+          });
         } else {
           // Đồng bộ video trong chương
-          courseChapter.videos.forEach((courseVideo) => {
-            if (!userVideoMap.has(courseVideo._id.toString())) {
+          courseChapter.videos.forEach(courseVideo => {
+            const userVideo = userChapter.videos.find(uv => uv.videoId.equals(courseVideo._id));
+            if (!userVideo) {
               userChapter.videos.push({
                 videoId: courseVideo._id,
                 status: 'not_started',
@@ -74,9 +77,9 @@ class UserCourseService {
           });
         }
       });
-
-      await userCourse.save({ validateBeforeSave: false });
-
+  
+      await userCourse.save();
+  
       return {
         status: 200,
         data: userCourse,
