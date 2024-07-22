@@ -91,7 +91,7 @@ const courseFormSchema = z.object({
   price: z.enum(["free", "paid"]),
   priceAmount: z.string().optional(),
   video: z.string().url("Vui lòng nhập URL hợp lệ").optional(),
-  image: z.instanceof(File).optional(),
+  image: z.string().url("Please enter a valid image URL").optional(),
   chapters: z.array(chapterSchema),
   slug: z.string().optional(),
 });
@@ -106,7 +106,7 @@ const UpdateCourse: React.FC<UpdateProps> = ({ data, isOpen, onClose }) => {
     resolver: zodResolver(courseFormSchema),
     defaultValues: {
       ...data,
-      image: data.image ? data.image : null,
+      image: data.image || null,
       chapters: data.chapters ? data.chapters : [],
     },
     mode: "onChange",
@@ -119,7 +119,7 @@ const UpdateCourse: React.FC<UpdateProps> = ({ data, isOpen, onClose }) => {
     // Reset form values whenever `data` changes
     form.reset({
       ...data,
-      image: data.image ? data.image : null,
+      image: data.image || null,
       chapters: data.chapters ? data.chapters : [],
     });
   }, [data, form]);
@@ -134,21 +134,23 @@ const UpdateCourse: React.FC<UpdateProps> = ({ data, isOpen, onClose }) => {
   });
 
   const handleImageUpload = (file: File) => {
-    form.setValue("image", file);
+    form.setValue("image", URL.createObjectURL(file));
     setImagePreview(URL.createObjectURL(file));
   };
 
-  const mutationUpdate = useMutationHook(async(dataForm: any) => {
-    if (dataForm.image) {
+  const mutationUpdate = useMutationHook(async (dataForm: any) => {
+    if (dataForm.image && dataForm.image instanceof File) {
       const imgRef = ref(imageDb, `files/${v4()}`);
       const snapshot = await uploadBytes(imgRef, dataForm.image);
       const url = await getDownloadURL(snapshot.ref);
-      dataForm.image = url; // replace the File object with the URL string
+      dataForm.image = url; // Thay thế đối tượng File bằng URL
+    } else if (!dataForm.image && data.image) {
+      dataForm.image = data.image; // Giữ URL hình ảnh cũ nếu không có hình ảnh mới
     }
     const access_Token = user?.access_Token;
-    const res = await CourseService.UpdateCourse(data._id, dataForm,access_Token)
-    return res
-  })
+    const res = await CourseService.UpdateCourse(data._id, dataForm, access_Token);
+    return res;
+  });
 
   const {data: dataUpdateCourses} = mutationUpdate
 
